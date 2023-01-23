@@ -110,5 +110,8 @@ result-*
 # emacs misc
 .dir-locals.el
 
+# vscode config
+.vscode
+
 /integration-ca-key.pem
 /integration-ca.pem
