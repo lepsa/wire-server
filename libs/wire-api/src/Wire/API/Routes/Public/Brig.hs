@@ -1516,6 +1516,7 @@ type SystemSettingsAPI =
     :<|> Named
            "get-system-settings"
            ( Summary "Returns a curated set of system configuration settings for authorized users."
+               :> From 'V4
                :> ZUser
                :> "system"
                :> "settings"
