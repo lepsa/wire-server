@@ -47,6 +47,7 @@ import System.IO.Error qualified as Error
 import System.IO.Temp (createTempDirectory, writeTempFile)
 import System.Posix (getEnvironment, killProcess, signalProcess)
 import System.Process (CreateProcess (..), ProcessHandle, StdStream (..), createProcess, getPid, proc, terminateProcess, waitForProcess)
+import System.Random
 import System.Timeout (timeout)
 import Testlib.App
 import Testlib.Env
@@ -421,8 +422,12 @@ startProcess' domain execName config = do
       Nothing -> (Nothing, execName)
       Just dir ->
         (Just (dir </> execName), "../../dist" </> execName)
-
-  (_, Just stdoutHdl, Just stderrHdl, ph) <- liftIO $ createProcess (proc exe ["-c", tempFile]) {cwd = cwd, env = Just processEnv, std_out = CreatePipe, std_err = CreatePipe}
+  rand <- randomIO @Int
+  -- Set the profiling output to be the name of the service with a random number
+  -- after it. This is useful when using `make cr` as it will spin up multiple
+  -- instances of the same service, and the profiling output will collide, making
+  -- it useless. The same is true for the time/alloc graph that is produced.
+  (_, Just stdoutHdl, Just stderrHdl, ph) <- liftIO $ createProcess (proc exe ["-c", tempFile, "+RTS", "-po" <> execName <> show rand]) {cwd = cwd, env = Just processEnv, std_out = CreatePipe, std_err = CreatePipe}
   let prefix = "[" <> execName <> "@" <> domain <> "] "
   let colorize = fromMaybe id (lookup execName processColors)
   void $ liftIO $ forkIO $ logToConsole colorize prefix stdoutHdl

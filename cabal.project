@@ -1,3 +1,5 @@
+profiling: True
+
 packages:
     integration
   , libs/bilge/

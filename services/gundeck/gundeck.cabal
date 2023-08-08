@@ -95,7 +95,7 @@ library
   ghc-options:
     -O2 -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wpartial-fields -fwarn-tabs -optP-Wno-nonportable-include-path
-    -Wredundant-constraints -Wunused-packages
+    -Wredundant-constraints -Wunused-packages "-with-rtsopts=-p -hc"
 
   build-depends:
       aeson                  >=2.0.1.0
@@ -202,8 +202,8 @@ executable gundeck
   ghc-options:
     -O2 -Wall -Wincomplete-uni-patterns -Wincomplete-record-updates
     -Wpartial-fields -fwarn-tabs -optP-Wno-nonportable-include-path
-    -threaded -rtsopts -with-rtsopts=-T -Wredundant-constraints
-    -Wunused-packages
+    -threaded -rtsopts "-with-rtsopts=-T -p -hc"
+    -Wredundant-constraints -Wunused-packages
 
   build-depends:
       base
