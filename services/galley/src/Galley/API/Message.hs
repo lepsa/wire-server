@@ -104,9 +104,9 @@ qualifiedUserToProtectee localDomain ty user
   | otherwise = LegalholdPlusFederationNotImplemented
 
 data QualifiedMismatch = QualifiedMismatch
-  { qmMissing :: QualifiedUserClients,
-    qmRedundant :: QualifiedUserClients,
-    qmDeleted :: QualifiedUserClients
+  { missing :: QualifiedUserClients,
+    redundant :: QualifiedUserClients,
+    deleted :: QualifiedUserClients
   }
   deriving (Show, Eq)
 

@@ -93,12 +93,12 @@ queryIndex (IndexQuery q f _) s = do
             }
 
 userDocToContact :: MonadThrow m => Domain -> UserDoc -> m Contact
-userDocToContact localDomain UserDoc {..} = do
-  let contactQualifiedId = Qualified udId localDomain
-  contactName <- maybe (throwM $ IndexError "Name not found") (pure . fromName) udName
-  let contactColorId = fromIntegral . fromColourId <$> udColourId
-      contactHandle = fromHandle <$> udHandle
-      contactTeam = udTeam
+userDocToContact localDomain ud = do
+  let contactQualifiedId = Qualified ud.id localDomain
+  contactName <- maybe (throwM $ IndexError "Name not found") (pure . fromName) ud.name
+  let contactColorId = fromIntegral . fromColourId <$> ud.colourId
+      contactHandle = fromHandle <$> ud.handle
+      contactTeam = ud.team
   pure $ Contact {..}
 
 -- | The default or canonical 'IndexQuery'.
@@ -108,7 +108,7 @@ userDocToContact localDomain UserDoc {..} = do
 --
 -- FUTUREWORK: Drop legacyPrefixMatch
 defaultUserQuery :: SearchSetting -> Text -> IndexQuery Contact
-defaultUserQuery setting (normalized -> term') =
+defaultUserQuery setting (normalizedText -> term') =
   let matchPhraseOrPrefix =
         ES.QueryMultiMatchQuery $
           ( ES.mkMultiMatchQuery

@@ -155,7 +155,7 @@ getConversationsAllFound = do
     assertEqual
       "name mismatch"
       (Just $ cnvName cnv2)
-      (cnvmName . rcnvMetadata <$> c2)
+      (name . rcnvMetadata <$> c2)
     assertEqual
       "self member role mismatch"
       (Just . memConvRoleName . cmSelf $ cnvMembers cnv2)
@@ -1184,7 +1184,7 @@ updateConversationByRemoteAdmin = do
     -- conversation has been modified by action
     updatedConv :: Conversation <- fmap responseJsonUnsafe $ getConvQualified alice cnv <!! const 200 === statusCode
     liftIO $
-      (cnvmReceiptMode . cnvMetadata) updatedConv @?= Just newReceiptMode
+      (receiptMode . cnvMetadata) updatedConv @?= Just newReceiptMode
 
     -- backend C gets notified of the conversation update and bob's promotion
     liftIO $ do

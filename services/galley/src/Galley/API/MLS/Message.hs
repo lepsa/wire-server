@@ -564,11 +564,11 @@ type HasProposalEffects r =
   )
 
 data ProposalAction = ProposalAction
-  { paAdd :: ClientMap,
-    paRemove :: ClientMap,
+  { add :: ClientMap,
+    remove :: ClientMap,
     -- The backend does not process external init proposals, but still it needs
     -- to know if a commit has one when processing external commits
-    paExternalInit :: Any
+    externalInit :: Any
   }
 
 instance Semigroup ProposalAction where
@@ -805,7 +805,7 @@ processInternalCommit qusr senderClient con lconv mlsMeta cm epoch action sender
     postponedKeyPackageRefUpdate <-
       if epoch == Epoch 0
         then do
-          let cType = cnvmType . convMetadata . tUnqualified $ lconv
+          let cType = type' . convMetadata . tUnqualified $ lconv
           case (self, cType, cmAssocs cm) of
             (Left _, SelfConv, []) -> do
               creatorClient <- noteS @'MLSMissingSenderClient senderClient

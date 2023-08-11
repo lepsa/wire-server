@@ -105,8 +105,8 @@ serviceRequestImpl nm service m r = do
 
 -- | Failed to parse a response from another service.
 data ParseException = ParseException
-  { _parseExceptionRemote :: !Text,
-    _parseExceptionMsg :: String
+  { _remote :: !Text,
+    _msg :: String
   }
 
 instance Show ParseException where

@@ -32,23 +32,23 @@ import Wire.API.Message
 testObject_NewOtrMessage_user_1 :: NewOtrMessage
 testObject_NewOtrMessage_user_1 =
   NewOtrMessage
-    { newOtrSender = ClientId {client = "6"},
-      newOtrRecipients = OtrRecipients {otrRecipientsMap = UserClientMap {userClientMap = fromList []}},
-      newOtrNativePush = True,
-      newOtrTransient = False,
-      newOtrNativePriority = Just HighPriority,
-      newOtrData = Nothing,
-      newOtrReportMissing = Just []
+    { sender = ClientId {client = "6"},
+      recipients = OtrRecipients {otrRecipientsMap = UserClientMap {userClientMap = fromList []}},
+      nativePush = True,
+      transient = False,
+      nativePriority = Just HighPriority,
+      data' = Nothing,
+      reportMissing = Just []
     }
 
 testObject_NewOtrMessage_user_2 :: NewOtrMessage
 testObject_NewOtrMessage_user_2 =
   NewOtrMessage
-    { newOtrSender = ClientId {client = "6"},
-      newOtrRecipients = OtrRecipients {otrRecipientsMap = UserClientMap {userClientMap = fromList []}},
-      newOtrNativePush = True,
-      newOtrTransient = False,
-      newOtrNativePriority = Nothing,
-      newOtrData = Just "data",
-      newOtrReportMissing = Nothing
+    { sender = ClientId {client = "6"},
+      recipients = OtrRecipients {otrRecipientsMap = UserClientMap {userClientMap = fromList []}},
+      nativePush = True,
+      transient = False,
+      nativePriority = Nothing,
+      data' = Just "data",
+      reportMissing = Nothing
     }

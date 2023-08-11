@@ -341,9 +341,9 @@ getTeamMembersTruncated usr tid n = do
   responseJsonError r
 
 data ResultPage = ResultPage
-  { rpResults :: [A.Value],
-    rpHasMore :: Bool,
-    rpPagingState :: Text
+  { results :: [A.Value],
+    hasMore :: Bool,
+    pagingState :: Text
   }
 
 instance FromJSON ResultPage where
@@ -922,12 +922,12 @@ broadcastTypeName BroadcastJSON = "json"
 broadcastTypeName BroadcastProto = "protobuf"
 
 data Broadcast = Broadcast
-  { bAPI :: BroadcastAPI,
-    bType :: BroadcastType,
-    bMessage :: [(UserId, ClientId, Text)],
-    bData :: Text,
-    bReport :: Maybe [UserId],
-    bReq :: Request -> Request
+  { api :: BroadcastAPI,
+    type' :: BroadcastType,
+    message :: [(UserId, ClientId, Text)],
+    data' :: Text,
+    report :: Maybe [UserId],
+    req :: Request -> Request
   }
 
 instance Default Broadcast where

@@ -151,8 +151,8 @@ sendLoginCall to c loc = do
 -- Activation SMS
 
 data ActivationSms = ActivationSms
-  { actSmsTo :: !Phone,
-    actSmsCode :: !ActivationCode
+  { to :: !Phone,
+    code :: !ActivationCode
   }
 
 renderActivationSms :: ActivationSms -> ActivationSmsTemplate -> TemplateBranding -> SMSMessage
@@ -168,8 +168,8 @@ renderActivationSms ActivationSms {..} (ActivationSmsTemplate url t from) brandi
 -- Password Reset SMS
 
 data PasswordResetSms = PasswordResetSms
-  { pwrSmsTo :: !Phone,
-    pwrSmsCode :: !PasswordResetCode
+  { to :: !Phone,
+    code :: !PasswordResetCode
   }
 
 renderPasswordResetSms :: PasswordResetSms -> PasswordResetSmsTemplate -> TemplateBranding -> SMSMessage
@@ -183,8 +183,8 @@ renderPasswordResetSms PasswordResetSms {..} (PasswordResetSmsTemplate t from) b
 -- Login SMS
 
 data LoginSms = LoginSms
-  { loginSmsTo :: !Phone,
-    loginSmsCode :: !LoginCode
+  { to :: !Phone,
+    code :: !LoginCode
   }
 
 renderLoginSms :: LoginSms -> LoginSmsTemplate -> TemplateBranding -> SMSMessage
@@ -199,9 +199,9 @@ renderLoginSms LoginSms {..} (LoginSmsTemplate url t from) branding =
 -- Deletion SMS
 
 data DeletionSms = DeletionSms
-  { delSmsTo :: !Phone,
-    delSmsKey :: !Code.Key,
-    delSmsCode :: !Code.Value
+  { to :: !Phone,
+    key :: !Code.Key,
+    code :: !Code.Value
   }
 
 renderDeletionSms :: DeletionSms -> DeletionSmsTemplate -> TemplateBranding -> SMSMessage
@@ -219,8 +219,8 @@ renderDeletionSms DeletionSms {..} (DeletionSmsTemplate url txt from) branding =
 -- Activation Call
 
 data ActivationCall = ActivationCall
-  { actCallTo :: !Phone,
-    actCallCode :: !ActivationCode
+  { to :: !Phone,
+    code :: !ActivationCode
   }
 
 renderActivationCall :: ActivationCall -> ActivationCallTemplate -> Locale -> TemplateBranding -> Nexmo.Call
@@ -239,8 +239,8 @@ renderActivationCall ActivationCall {..} (ActivationCallTemplate t) loc branding
 -- Login Call
 
 data LoginCall = LoginCall
-  { loginCallTo :: !Phone,
-    loginCallCode :: !LoginCode
+  { to :: !Phone,
+    code :: !LoginCode
   }
 
 renderLoginCall :: LoginCall -> LoginCallTemplate -> Locale -> TemplateBranding -> Nexmo.Call

@@ -33,8 +33,8 @@ import Data.Time.Clock
 import Imports
 
 data Budget = Budget
-  { budgetTimeout :: !NominalDiffTime,
-    budgetValue :: !Int32
+  { timeout :: !NominalDiffTime,
+    value :: !Int32
   }
   deriving (Eq, Show, Generic)
 

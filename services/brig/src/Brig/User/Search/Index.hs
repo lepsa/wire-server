@@ -84,7 +84,7 @@ import Data.Text.Lazy.Builder.Int (decimal)
 import Data.Text.Lens hiding (text)
 import Data.UUID qualified as UUID
 import Database.Bloodhound qualified as ES
-import Imports hiding (log, searchable)
+import Imports as I hiding (log, searchable)
 import Network.HTTP.Client hiding (path)
 import Network.HTTP.Types (StdMethod (POST), hContentType, statusCode)
 import SAML2.WebSSO.Types qualified as SAML
@@ -102,15 +102,15 @@ import Wire.API.User.Search (Sso (..))
 -- IndexIO Monad
 
 data IndexEnv = IndexEnv
-  { idxMetrics :: Metrics,
-    idxLogger :: Logger,
-    idxElastic :: ES.BHEnv,
-    idxRequest :: Maybe RequestId,
-    idxName :: ES.IndexName,
-    idxAdditionalName :: Maybe ES.IndexName,
-    idxAdditionalElastic :: Maybe ES.BHEnv,
-    idxGalley :: Endpoint,
-    idxHttpManager :: Manager
+  { metrics :: Metrics,
+    logger :: Logger,
+    elastic :: ES.BHEnv,
+    request :: Maybe RequestId,
+    name :: ES.IndexName,
+    additionalName :: Maybe ES.IndexName,
+    additionalElastic :: Maybe ES.BHEnv,
+    galley :: Endpoint,
+    httpManager :: Manager
   }
 
 newtype IndexIO a = IndexIO (ReaderT IndexEnv IO a)
@@ -132,13 +132,13 @@ class MonadIO m => MonadIndexIO m where
   liftIndexIO :: IndexIO a -> m a
 
 instance MonadIndexIO IndexIO where
-  liftIndexIO = id
+  liftIndexIO = I.id
 
 instance MonadLogger IndexIO where
   log l m = do
     g <- asks idxLogger
     r <- asks idxRequest
-    Log.log g l $ maybe id (field "request" . unRequestId) r ~~ m
+    Log.log g l $ maybe I.id (field "request" . unRequestId) r ~~ m
 
 instance MonadLogger (ExceptT e IndexIO) where
   log l m = lift (log l m)
@@ -169,14 +169,14 @@ withAdditionalESUrl action = do
 reindex :: (MonadLogger m, MonadIndexIO m, C.MonadClient m) => UserId -> m ()
 reindex u = do
   ixu <- lookupIndexUser u
-  updateIndex (maybe (IndexDeleteUser u) (IndexUpdateUser IndexUpdateIfNewerVersion) ixu)
+  updateIndex (maybe (Types.IndexDeleteUser u) (Types.IndexUpdateUser Types.IndexUpdateIfNewerVersion) ixu)
 
-updateIndex :: MonadIndexIO m => IndexUpdate -> m ()
-updateIndex (IndexUpdateUser updateType iu) = liftIndexIO $ do
+updateIndex :: MonadIndexIO m => Types.IndexUpdate -> m ()
+updateIndex (Types.IndexUpdateUser updateType iu) = liftIndexIO $ do
   m <- asks idxMetrics
   counterIncr (path "user.index.update.count") m
   info $
-    field "user" (Bytes.toByteString (view iuUserId iu))
+    field "user" (Bytes.toByteString (view Types.iuUserId iu))
       . msg (val "Indexing user")
   idx <- asks idxName
   withDefaultESUrl $ indexDoc idx
@@ -185,17 +185,17 @@ updateIndex (IndexUpdateUser updateType iu) = liftIndexIO $ do
     indexDoc :: (MonadIndexIO m, MonadThrow m) => ES.IndexName -> ES.BH m ()
     indexDoc idx = do
       m <- lift . liftIndexIO $ asks idxMetrics
-      r <- ES.indexDocument idx mappingName versioning (indexToDoc iu) docId
+      r <- ES.indexDocument idx mappingName versioning (Types.indexToDoc iu) docId
       unless (ES.isSuccess r || ES.isVersionConflict r) $ do
         counterIncr (path "user.index.update.err") m
-        ES.parseEsResponse r >>= throwM . IndexUpdateError . either id id
+        ES.parseEsResponse r >>= throwM . Types.IndexUpdateError . either I.id I.id
       counterIncr (path "user.index.update.ok") m
     versioning =
       ES.defaultIndexDocumentSettings
-        { ES.idsVersionControl = indexUpdateToVersionControl updateType (ES.ExternalDocVersion (docVersion (_iuVersion iu)))
+        { ES.idsVersionControl = indexUpdateToVersionControl updateType (ES.ExternalDocVersion (Types.docVersion (Types._iuVersion iu)))
         }
-    docId = ES.DocId (view (iuUserId . re _TextId) iu)
-updateIndex (IndexUpdateUsers updateType ius) = liftIndexIO $ do
+    docId = ES.DocId (view (Types.iuUserId . re _TextId) iu)
+updateIndex (Types.IndexUpdateUsers updateType ius) = liftIndexIO $ do
   m <- asks idxMetrics
   counterIncr (path "user.index.update.bulk.count") m
   info $
@@ -219,7 +219,7 @@ updateIndex (IndexUpdateUsers updateType ius) = liftIndexIO $ do
         (ES.bhManager bhe)
   unless (ES.isSuccess res) $ do
     counterIncr (path "user.index.update.bulk.err") m
-    ES.parseEsResponse res >>= throwM . IndexUpdateError . either id id
+    ES.parseEsResponse res >>= throwM . Types.IndexUpdateError . either I.id I.id
   counterIncr (path "user.index.update.bulk.ok") m
   for_ (statuses res) $ \(s, f) ->
     counterAdd
@@ -230,9 +230,9 @@ updateIndex (IndexUpdateUsers updateType ius) = liftIndexIO $ do
     encodeJSONToString :: ToJSON a => a -> Builder
     encodeJSONToString = fromEncoding . toEncoding
     bulkEncode iu =
-      bulkMeta (view (iuUserId . re _TextId) iu) (docVersion (_iuVersion iu))
+      bulkMeta (view (Types.iuUserId . re _TextId) iu) (Types.docVersion (Types._iuVersion iu))
         <> "\n"
-        <> encodeJSONToString (indexToDoc iu)
+        <> encodeJSONToString (Types.indexToDoc iu)
         <> "\n"
     bulkMeta :: Text -> ES.DocVersion -> Builder
     bulkMeta docId v =
@@ -248,7 +248,7 @@ updateIndex (IndexUpdateUsers updateType ius) = liftIndexIO $ do
         . flip zip [1, 1 ..]
         . toListOf (key "items" . values . key "index" . key "status" . _Integral)
         . responseBody
-updateIndex (IndexDeleteUser u) = liftIndexIO $ do
+updateIndex (Types.IndexDeleteUser u) = liftIndexIO $ do
   counterIncr (path "user.index.delete.count") =<< asks idxMetrics
   info $
     field "user" (Bytes.toByteString u)
@@ -258,9 +258,9 @@ updateIndex (IndexDeleteUser u) = liftIndexIO $ do
   case statusCode (responseStatus r) of
     200 -> case preview (key "_version" . _Integer) (responseBody r) of
       Nothing -> throwM $ ES.EsProtocolException "'version' not found" (responseBody r)
-      Just v -> updateIndex . IndexUpdateUser IndexUpdateIfNewerVersion . mkIndexUser u =<< mkIndexVersion (v + 1)
+      Just v -> updateIndex . Types.IndexUpdateUser Types.IndexUpdateIfNewerVersion . Types.mkIndexUser u =<< Types.mkIndexVersion (v + 1)
     404 -> pure ()
-    _ -> ES.parseEsResponse r >>= throwM . IndexUpdateError . either id id
+    _ -> ES.parseEsResponse r >>= throwM . Types.IndexUpdateError . either I.id I.id
 
 updateSearchVisibilityInbound :: (MonadIndexIO m) => Multi.TeamStatus SearchVisibilityInboundConfig -> m ()
 updateSearchVisibilityInbound status = liftIndexIO $ do
@@ -271,7 +271,7 @@ updateSearchVisibilityInbound status = liftIndexIO $ do
     updateAllDocs idx = do
       r <- ES.updateByQuery idx query (Just script)
       unless (ES.isSuccess r || ES.isVersionConflict r) $ do
-        ES.parseEsResponse r >>= throwM . IndexUpdateError . either id id
+        ES.parseEsResponse r >>= throwM . Types.IndexUpdateError . either I.id I.id
 
     query :: ES.Query
     query = ES.TermQuery (ES.Term "team" $ idToText (Multi.team status)) Nothing
@@ -282,7 +282,7 @@ updateSearchVisibilityInbound status = liftIndexIO $ do
     -- Unfortunately ES disallows updating ctx._version with a "Update By Query"
     scriptText =
       "ctx._source."
-        <> searchVisibilityInboundFieldName
+        <> Types.searchVisibilityInboundFieldName
         <> " = '"
         <> decodeUtf8 (toByteString' (searchVisibilityInboundFromFeatureStatus (Multi.status status)))
         <> "';"
@@ -317,7 +317,7 @@ createIndex' failIfExists (CreateIndexSettings settings shardCount mbDeleteTempl
   idx <- asks idxName
   ex <- ES.indexExists idx
   when (failIfExists && ex) $
-    throwM (IndexError "Index already exists.")
+    throwM (Types.IndexError "Index already exists.")
   unless ex $ do
     let fullSettings = settings ++ [ES.AnalysisSetting analysisSettings]
 
@@ -332,16 +332,16 @@ createIndex' failIfExists (CreateIndexSettings settings shardCount mbDeleteTempl
       when tExists $ do
         dr <- traceES (cs ("Delete index template " <> "\"" <> tname <> "\"")) $ ES.deleteTemplate templateName
         unless (ES.isSuccess dr) $
-          throwM (IndexError "Deleting index template failed.")
+          throwM (Types.IndexError "Deleting index template failed.")
 
     cr <- traceES "Create index" $ ES.createIndexWith fullSettings shardCount idx
     unless (ES.isSuccess cr) $
-      throwM (IndexError "Index creation failed.")
+      throwM (Types.IndexError "Index creation failed.")
     mr <-
       traceES "Put mapping" $
         ES.putMapping idx (ES.MappingName "user") indexMapping
     unless (ES.isSuccess mr) $
-      throwM (IndexError "Put Mapping failed.")
+      throwM (Types.IndexError "Put Mapping failed.")
 
 analysisSettings :: ES.Analysis
 analysisSettings =
@@ -362,7 +362,7 @@ updateMapping = liftIndexIO $ do
   idx <- asks idxName
   ex <- ES.indexExists idx
   unless ex $
-    throwM (IndexError "Index does not exist.")
+    throwM (Types.IndexError "Index does not exist.")
   -- FUTUREWORK: check return code (ES.isSuccess) and fail if appropriate.
   -- But to do that we have to consider the consequences of this failing in our helm chart:
   -- https://github.com/wireapp/wire-server-deploy/blob/92311d189818ffc5e26ff589f81b95c95de8722c/charts/elasticsearch-index/templates/create-index.yaml
@@ -382,15 +382,15 @@ resetIndex ciSettings = liftIndexIO $ do
       False -> pure True
   if gone
     then createIndex ciSettings
-    else throwM (IndexError "Index deletion failed.")
+    else throwM (Types.IndexError "Index deletion failed.")
 
 reindexAllIfSameOrNewer :: (MonadLogger m, MonadIndexIO m, C.MonadClient m) => m ()
-reindexAllIfSameOrNewer = reindexAllWith IndexUpdateIfSameOrNewerVersion
+reindexAllIfSameOrNewer = reindexAllWith Types.IndexUpdateIfSameOrNewerVersion
 
 reindexAll :: (MonadLogger m, MonadIndexIO m, C.MonadClient m) => m ()
-reindexAll = reindexAllWith IndexUpdateIfNewerVersion
+reindexAll = reindexAllWith Types.IndexUpdateIfNewerVersion
 
-reindexAllWith :: (MonadLogger m, MonadIndexIO m, C.MonadClient m) => IndexDocUpdateType -> m ()
+reindexAllWith :: (MonadLogger m, MonadIndexIO m, C.MonadClient m) => Types.IndexDocUpdateType -> m ()
 reindexAllWith updateType = do
   idx <- liftIndexIO $ asks idxName
   C.liftClient (scanForIndex 1000) >>= loop idx
@@ -406,7 +406,7 @@ reindexAllWith updateType = do
               let sv = maybe defaultSearchVisibilityInbound lookupFn (teamInReindexRow row)
                in reindexRowToIndexUser row sv
         indexUsers <- mapM reindexRow (C.result page)
-        updateIndex (IndexUpdateUsers updateType indexUsers)
+        updateIndex (Types.IndexUpdateUsers updateType indexUsers)
       when (C.hasMore page) $
         C.liftClient (C.nextPage page) >>= loop idx
 
@@ -414,13 +414,13 @@ reindexAllWith updateType = do
 -- Internal
 
 -- This is useful and necessary due to the lack of expressiveness in the bulk API
-indexUpdateToVersionControlText :: IndexDocUpdateType -> Text
-indexUpdateToVersionControlText IndexUpdateIfNewerVersion = "external_gt"
-indexUpdateToVersionControlText IndexUpdateIfSameOrNewerVersion = "external_gte"
+indexUpdateToVersionControlText :: Types.IndexDocUpdateType -> Text
+indexUpdateToVersionControlText Types.IndexUpdateIfNewerVersion = "external_gt"
+indexUpdateToVersionControlText Types.IndexUpdateIfSameOrNewerVersion = "external_gte"
 
-indexUpdateToVersionControl :: IndexDocUpdateType -> (ES.ExternalDocVersion -> ES.VersionControl)
-indexUpdateToVersionControl IndexUpdateIfNewerVersion = ES.ExternalGT
-indexUpdateToVersionControl IndexUpdateIfSameOrNewerVersion = ES.ExternalGTE
+indexUpdateToVersionControl :: Types.IndexDocUpdateType -> (ES.ExternalDocVersion -> ES.VersionControl)
+indexUpdateToVersionControl Types.IndexUpdateIfNewerVersion = ES.ExternalGT
+indexUpdateToVersionControl Types.IndexUpdateIfSameOrNewerVersion = ES.ExternalGTE
 
 traceES :: MonadIndexIO m => ByteString -> IndexIO ES.Reply -> m ES.Reply
 traceES descr act = liftIndexIO $ do
@@ -481,28 +481,28 @@ indexMapping =
         .= object
           [ "normalized" -- normalized user name
               .= MappingProperty
-                { mpType = MPText,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields =
+                { type' = MPText,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields =
                     Map.fromList [("prefix", MappingField MPText (Just "prefix_index") (Just "prefix_search"))]
                 },
             "name"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "handle"
               .= MappingProperty
-                { mpType = MPText,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields =
+                { type' = MPText,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields =
                     Map.fromList
                       [ ("prefix", MappingField MPText (Just "prefix_index") (Just "prefix_search")),
                         ("keyword", MappingField MPKeyword Nothing Nothing)
@@ -510,11 +510,11 @@ indexMapping =
                 },
             "email"
               .= MappingProperty
-                { mpType = MPText,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields =
+                { type' = MPText,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields =
                     Map.fromList
                       [ ("prefix", MappingField MPText (Just "prefix_index") (Just "prefix_search")),
                         ("keyword", MappingField MPKeyword Nothing Nothing)
@@ -522,75 +522,75 @@ indexMapping =
                 },
             "team"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "accent_id"
               .= MappingProperty
-                { mpType = MPByte,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPByte,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "account_status"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "saml_idp"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "managed_by"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "created_at"
               .= MappingProperty
-                { mpType = MPDate,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPDate,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "role"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
-            (fromString . T.unpack $ searchVisibilityInboundFieldName)
+            (fromString . T.unpack $ Types.searchVisibilityInboundFieldName)
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = True,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = True,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "scim_external_id"
               .= MappingProperty
-                { mpType = MPKeyword,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPKeyword,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 },
             "sso"
               .= object
@@ -599,45 +599,45 @@ indexMapping =
                     .= object
                       [ "issuer"
                           .= MappingProperty
-                            { mpType = MPKeyword,
-                              mpStore = False,
-                              mpIndex = False,
-                              mpAnalyzer = Nothing,
-                              mpFields = mempty
+                            { type' = MPKeyword,
+                              store = False,
+                              index = False,
+                              analyzer = Nothing,
+                              fields = mempty
                             },
                         "nameid"
                           .= MappingProperty
-                            { mpType = MPKeyword,
-                              mpStore = False,
-                              mpIndex = False,
-                              mpAnalyzer = Nothing,
-                              mpFields = mempty
+                            { type' = MPKeyword,
+                              store = False,
+                              index = False,
+                              analyzer = Nothing,
+                              fields = mempty
                             }
                       ]
                 ],
             "email_unvalidated"
               .= MappingProperty
-                { mpType = MPText,
-                  mpStore = False,
-                  mpIndex = False,
-                  mpAnalyzer = Nothing,
-                  mpFields = mempty
+                { type' = MPText,
+                  store = False,
+                  index = False,
+                  analyzer = Nothing,
+                  fields = mempty
                 }
           ]
     ]
 
 data MappingProperty = MappingProperty
-  { mpType :: MappingPropertyType,
-    mpStore :: Bool,
-    mpIndex :: Bool,
-    mpAnalyzer :: Maybe Text,
-    mpFields :: Map Text MappingField
+  { type' :: MappingPropertyType,
+    store :: Bool,
+    index :: Bool,
+    analyzer :: Maybe Text,
+    fields :: Map Text MappingField
   }
 
 data MappingField = MappingField
-  { mfType :: MappingPropertyType,
-    mfAnalyzer :: Maybe Text,
-    mfSearchAnalyzer :: Maybe Text
+  { type' :: MappingPropertyType,
+    analyzer :: Maybe Text,
+    searchAnalyzer :: Maybe Text
   }
 
 data MappingPropertyType = MPText | MPKeyword | MPByte | MPDate
@@ -646,12 +646,12 @@ data MappingPropertyType = MPText | MPKeyword | MPByte | MPDate
 instance ToJSON MappingProperty where
   toJSON mp =
     object
-      ( [ "type" .= mpType mp,
-          "store" .= mpStore mp,
-          "index" .= mpIndex mp
+      ( [ "type" .= mp.type',
+          "store" .= mp.store,
+          "index" .= mp.index
         ]
-          <> ["analyzer" .= mpAnalyzer mp | isJust $ mpAnalyzer mp]
-          <> ["fields" .= mpFields mp | not . Map.null $ mpFields mp]
+          <> ["analyzer" .= mp.analyzer | isJust $ mp.analyzer]
+          <> ["fields" .= mp.fields | not . Map.null $ mp.fields]
       )
 
 instance ToJSON MappingPropertyType where
@@ -663,9 +663,9 @@ instance ToJSON MappingPropertyType where
 instance ToJSON MappingField where
   toJSON mf =
     object $
-      ["type" .= mfType mf]
-        <> ["analyzer" .= mfAnalyzer mf | isJust (mfAnalyzer mf)]
-        <> ["search_analyzer" .= mfSearchAnalyzer mf | isJust (mfSearchAnalyzer mf)]
+      ["type" .= mf.type']
+        <> ["analyzer" .= mf.analyzer | isJust mf.analyzer]
+        <> ["search_analyzer" .= mf.searchAnalyzer | isJust mf.searchAnalyzer]
 
 boolQuery :: ES.BoolQuery
 boolQuery = ES.mkBoolQuery [] [] [] []
@@ -679,10 +679,10 @@ mappingName = ES.MappingName "user"
 lookupIndexUser ::
   (MonadIndexIO m, C.MonadClient m) =>
   UserId ->
-  m (Maybe IndexUser)
+  m (Maybe Types.IndexUser)
 lookupIndexUser = lookupForIndex
 
-lookupForIndex :: (C.MonadClient m, MonadIndexIO m) => UserId -> m (Maybe IndexUser)
+lookupForIndex :: (C.MonadClient m, MonadIndexIO m) => UserId -> m (Maybe Types.IndexUser)
 lookupForIndex u = do
   mrow <- C.retry C.x1 (C.query1 cql (C.params C.LocalQuorum (Identity u)))
   for mrow $ \row -> do
@@ -799,7 +799,7 @@ type ReindexRow =
 teamInReindexRow :: ReindexRow -> Maybe TeamId
 teamInReindexRow (_f1, f2, _f3, _f4, _f5, _f6, _f7, _f8, _f9, _f10, _f11, _f12, _f13, _f14, _f15, _f16, _f17, _f18, _f19, _f20, _f21, _f22) = f2
 
-reindexRowToIndexUser :: forall m. MonadThrow m => ReindexRow -> SearchVisibilityInbound -> m IndexUser
+reindexRowToIndexUser :: forall m. MonadThrow m => ReindexRow -> SearchVisibilityInbound -> m Types.IndexUser
 reindexRowToIndexUser
   ( u,
     mteam,
@@ -827,7 +827,7 @@ reindexRowToIndexUser
   searchVisInbound =
     do
       iu <-
-        mkIndexUser u
+        Types.mkIndexUser u
           <$> version
             [ Just (v tName),
               v <$> tStatus,
@@ -844,30 +844,30 @@ reindexRowToIndexUser
         if shouldIndex
           then
             iu
-              & set iuTeam mteam
-                . set iuName (Just name)
-                . set iuHandle handle
-                . set iuEmail email
-                . set iuColourId (Just colour)
-                . set iuAccountStatus status
-                . set iuSAMLIdP (idpUrl =<< ssoId)
-                . set iuManagedBy managedBy
-                . set iuCreatedAt (Just (writetimeToUTC tActivated))
-                . set iuSearchVisibilityInbound (Just searchVisInbound)
-                . set iuScimExternalId (join $ User.scimExternalId <$> managedBy <*> ssoId)
-                . set iuSso (sso =<< ssoId)
-                . set iuEmailUnvalidated emailUnvalidated
+              & set Types.iuTeam mteam
+                . set Types.iuName (Just name)
+                . set Types.iuHandle handle
+                . set Types.iuEmail email
+                . set Types.iuColourId (Just colour)
+                . set Types.iuAccountStatus status
+                . set Types.iuSAMLIdP (idpUrl =<< ssoId)
+                . set Types.iuManagedBy managedBy
+                . set Types.iuCreatedAt (Just (writetimeToUTC tActivated))
+                . set Types.iuSearchVisibilityInbound (Just searchVisInbound)
+                . set Types.iuScimExternalId (join $ User.scimExternalId <$> managedBy <*> ssoId)
+                . set Types.iuSso (sso =<< ssoId)
+                . set Types.iuEmailUnvalidated emailUnvalidated
           else
             iu
               -- We insert a tombstone-style user here, as it's easier than deleting the old one.
               -- It's mostly empty, but having the status here might be useful in the future.
-              & set iuAccountStatus status
+              & set Types.iuAccountStatus status
     where
       v :: Writetime a -> Int64
       v = writetimeToInt64
 
-      version :: [Maybe Int64] -> m IndexVersion
-      version = mkIndexVersion . getMax . mconcat . fmap Max . catMaybes
+      version :: [Maybe Int64] -> m Types.IndexVersion
+      version = Types.mkIndexVersion . getMax . mconcat . fmap Max . catMaybes
 
       shouldIndex =
         ( case status of
@@ -928,7 +928,7 @@ getTeamSearchVisibilityInboundMulti tids = do
       recovering x3 rpcHandlers $
         const $ do
           let rq = (RPC.method m . r) service
-          res <- try $ RPC.httpLbs rq id
+          res <- try $ RPC.httpLbs rq I.id
           case res of
             Left x -> throwM $ RPCException nm rq x
             Right x -> pure x
@@ -939,8 +939,8 @@ getTeamSearchVisibilityInboundMulti tids = do
         x3 = limitRetries 3 <> exponentialBackoff 100000
 
 data ParseException = ParseException
-  { _parseExceptionRemote :: !Text,
-    _parseExceptionMsg :: String
+  { _remote :: !Text,
+    _msg :: String
   }
 
 instance Show ParseException where

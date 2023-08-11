@@ -51,10 +51,10 @@ import Wire.API.Internal.Notification
 
 -- | Native push address information of a device.
 data Address = Address
-  { _addrUser :: !UserId,
-    _addrEndpoint :: !EndpointArn,
-    _addrConn :: !ConnId,
-    _addrPushToken :: !PushToken
+  { _user :: !UserId,
+    _endpoint :: !EndpointArn,
+    _conn :: !ConnId,
+    _pushToken :: !PushToken
   }
   deriving (Eq, Ord)
 
@@ -107,7 +107,7 @@ data Failure
   deriving (Show)
 
 data NativePush = NativePush
-  { npNotificationid :: NotificationId,
-    npPriority :: Priority,
-    npApsData :: Maybe ApsData
+  { notificationid :: NotificationId,
+    priority :: Priority,
+    apsData :: Maybe ApsData
   }

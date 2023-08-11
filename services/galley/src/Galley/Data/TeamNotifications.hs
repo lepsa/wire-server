@@ -31,9 +31,9 @@ import Wire.API.Internal.Notification
 
 data ResultPage = ResultPage
   { -- | A sequence of notifications.
-    resultSeq :: Seq QueuedNotification,
+    seq :: Seq QueuedNotification,
     -- | Whether there might be more notifications that can be
     -- obtained through another query, starting the the ID of the
     -- last notification in 'resultSeq'.
-    resultHasMore :: !Bool
+    hasMore :: !Bool
   }

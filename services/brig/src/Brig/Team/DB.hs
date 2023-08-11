@@ -72,9 +72,9 @@ mkInvitationId :: IO InvitationId
 mkInvitationId = Id <$> nextRandom
 
 data InvitationInfo = InvitationInfo
-  { iiCode :: InvitationCode,
-    iiTeam :: TeamId,
-    iiInvId :: InvitationId
+  { code :: InvitationCode,
+    team :: TeamId,
+    invId :: InvitationId
   }
   deriving (Eq, Show)
 

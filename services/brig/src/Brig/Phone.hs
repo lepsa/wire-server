@@ -61,9 +61,9 @@ import Wire.API.User
 -- Sending SMS and Voice Calls
 
 data SMSMessage = SMSMessage
-  { smsFrom :: !Text,
-    smsTo :: !Text,
-    smsText :: !Text
+  { from :: !Text,
+    to :: !Text,
+    text :: !Text
   }
 
 data PhoneException
@@ -296,9 +296,9 @@ withCallBudget phone go = do
 
 data PhoneKey = PhoneKey
   { -- | canonical form of 'phoneKeyOrig', without whitespace.
-    phoneKeyUniq :: !Text,
+    uniq :: !Text,
     -- | phone number with whitespace.
-    phoneKeyOrig :: !Phone
+    orig :: !Phone
   }
 
 instance Show PhoneKey where

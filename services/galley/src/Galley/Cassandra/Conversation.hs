@@ -65,12 +65,12 @@ createMLSSelfConversation lusr = do
       usr = tUnqualified lusr
       nc =
         NewConversation
-          { ncMetadata =
-              (defConversationMetadata usr) {cnvmType = SelfConv},
-            ncUsers = ulFromLocals [toUserRole usr],
-            ncProtocol = ProtocolMLSTag
+          { metadata =
+              (defConversationMetadata usr) {type' = SelfConv},
+            users = ulFromLocals [toUserRole usr],
+            protocol = ProtocolMLSTag
           }
-      meta = ncMetadata nc
+      meta = metadata nc
       gid = convToGroupId . qualifyAs lusr $ cnv
       -- FUTUREWORK: Stop hard-coding the cipher suite
       --
@@ -90,14 +90,14 @@ createMLSSelfConversation lusr = do
     addPrepQuery
       Cql.insertMLSSelfConv
       ( cnv,
-        cnvmType meta,
-        cnvmCreator meta,
-        Cql.Set (cnvmAccess meta),
-        Cql.Set (toList (cnvmAccessRoles meta)),
-        cnvmName meta,
-        cnvmTeam meta,
-        cnvmMessageTimer meta,
-        cnvmReceiptMode meta,
+        type' meta,
+        creator meta,
+        Cql.Set (access meta),
+        Cql.Set (toList (accessRoles meta)),
+        name meta,
+        team meta,
+        messageTimer meta,
+        receiptMode meta,
         Just gid,
         Just cs
       )
@@ -106,12 +106,12 @@ createMLSSelfConversation lusr = do
   (lmems, rmems) <- addMembers cnv (ncUsers nc)
   pure
     Conversation
-      { convId = cnv,
-        convLocalMembers = lmems,
-        convRemoteMembers = rmems,
-        convDeleted = False,
-        convMetadata = meta,
-        convProtocol = proto
+      { id = cnv,
+        localMembers = lmems,
+        remoteMembers = rmems,
+        deleted = False,
+        metadata = meta,
+        protocol = proto
       }
 
 createConversation :: Local ConvId -> NewConversation -> Client Conversation
@@ -144,30 +144,30 @@ createConversation lcnv nc = do
     addPrepQuery
       Cql.insertConv
       ( tUnqualified lcnv,
-        cnvmType meta,
-        cnvmCreator meta,
-        Cql.Set (cnvmAccess meta),
-        Cql.Set (toList (cnvmAccessRoles meta)),
-        cnvmName meta,
-        cnvmTeam meta,
-        cnvmMessageTimer meta,
-        cnvmReceiptMode meta,
+        type' meta,
+        creator meta,
+        Cql.Set (access meta),
+        Cql.Set (toList (accessRoles meta)),
+        name meta,
+        team meta,
+        messageTimer meta,
+        receiptMode meta,
         ncProtocol nc,
         mgid,
         mep,
         mcs
       )
-    for_ (cnvmTeam meta) $ \tid -> addPrepQuery Cql.insertTeamConv (tid, tUnqualified lcnv)
+    for_ (team meta) $ \tid -> addPrepQuery Cql.insertTeamConv (tid, tUnqualified lcnv)
     for_ mgid $ \gid -> addPrepQuery Cql.insertGroupId (gid, tUnqualified lcnv, tDomain lcnv)
   (lmems, rmems) <- addMembers (tUnqualified lcnv) (ncUsers nc)
   pure
     Conversation
-      { convId = tUnqualified lcnv,
-        convLocalMembers = lmems,
-        convRemoteMembers = rmems,
-        convDeleted = False,
-        convMetadata = meta,
-        convProtocol = proto
+      { id = tUnqualified lcnv,
+        localMembers = lmems,
+        remoteMembers = rmems,
+        deleted = False,
+        metadata = meta,
+        protocol = proto
       }
 
 deleteConversation :: ConvId -> Client ()
@@ -350,21 +350,21 @@ toConv cid ms remoteMems mconv = do
   proto <- toProtocol ptag mgid mep mcs
   pure
     Conversation
-      { convId = cid,
-        convDeleted = fromMaybe False del,
-        convLocalMembers = ms,
-        convRemoteMembers = remoteMems,
-        convProtocol = proto,
-        convMetadata =
+      { id = cid,
+        deleted = fromMaybe False del,
+        localMembers = ms,
+        remoteMembers = remoteMems,
+        protocol = proto,
+        metadata =
           ConversationMetadata
-            { cnvmType = cty,
-              cnvmCreator = uid,
-              cnvmAccess = defAccess cty acc,
-              cnvmAccessRoles = accessRoles,
-              cnvmName = nme,
-              cnvmTeam = ti,
-              cnvmMessageTimer = timer,
-              cnvmReceiptMode = rm
+            { type' = cty,
+              creator = uid,
+              access = defAccess cty acc,
+              accessRoles = accessRoles,
+              name = nme,
+              team = ti,
+              messageTimer = timer,
+              receiptMode = rm
             }
       }
 

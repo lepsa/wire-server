@@ -54,9 +54,9 @@ import Wire.API.User.Activation
 --  | The information associated with the pending activation of a 'UserKey'.
 data Activation = Activation
   { -- | An opaque key for the original 'UserKey' pending activation.
-    activationKey :: !ActivationKey,
+    key :: !ActivationKey,
     -- | The confidential activation code.
-    activationCode :: !ActivationCode
+    code :: !ActivationCode
   }
   deriving (Eq, Show)
 

@@ -53,19 +53,19 @@ import Wire.API.User
 
 data CreateUserResult = CreateUserResult
   { -- | The newly created user account.
-    createdAccount :: !UserAccount,
+    account :: !UserAccount,
     -- | Activation data for the registered email address, if any.
-    createdEmailActivation :: !(Maybe Activation),
+    emailActivation :: !(Maybe Activation),
     -- | Activation data for the registered phone number, if any.
-    createdPhoneActivation :: !(Maybe Activation),
+    phoneActivation :: !(Maybe Activation),
     -- | Info of a team just created/joined
-    createdUserTeam :: !(Maybe CreateUserTeam)
+    userTeam :: !(Maybe CreateUserTeam)
   }
   deriving (Show)
 
 data CreateUserTeam = CreateUserTeam
-  { createdTeamId :: !TeamId,
-    createdTeamName :: !Text
+  { id :: !TeamId,
+    name :: !Text
   }
   deriving (Show)
 

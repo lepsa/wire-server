@@ -61,7 +61,7 @@ interpretSFT httpManager = interpret $ \(SFTGetAllServers url) -> do
     let req = parseRequest_ . cs . toByteString' $ urlWithPath
     response <- fromExceptionVia @HttpException (SFTError . show) (responseBody <$> httpLbs req httpManager)
     let eList = Aeson.eitherDecode @AllURLs response
-    res <- fromEither $ bimap SFTError (fmap sftServer . unAllURLs) eList
+    res <- fromEither $ bimap SFTError (fmap sftServer . sftServersAll) eList
     debug $ Log.field "URLs" (show res) . Log.msg ("Fetched the following server URLs" :: ByteString)
     pure res
 
@@ -74,14 +74,14 @@ runSftError urlWithPath act =
                   throw e
               )
 
-newtype AllURLs = AllURLs {unAllURLs :: [HttpsUrl]}
+newtype AllURLs = AllURLs {sftServersAll :: [HttpsUrl]}
   deriving (Aeson.FromJSON) via Schema AllURLs
 
 instance ToSchema AllURLs where
   schema =
     object "AllURLs" $
       AllURLs
-        <$> unAllURLs .= field "sft_servers_all" (array schema)
+        <$> sftServersAll .= field "sft_servers_all" (array schema)
 
 interpretSFTInMemory ::
   Member TinyLog r =>

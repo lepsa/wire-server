@@ -21,8 +21,8 @@ import Database.Bloodhound qualified as ES
 import Imports
 
 data CreateIndexSettings = CreateIndexSettings
-  { _cisIndexSettings :: [ES.UpdatableIndexSetting],
-    _cisShardCount :: Int,
-    _cisDeleteTemplate :: Maybe ES.TemplateName
+  { _indexSettings :: [ES.UpdatableIndexSetting],
+    _shardCount :: Int,
+    _deleteTemplate :: Maybe ES.TemplateName
   }
   deriving (Show)

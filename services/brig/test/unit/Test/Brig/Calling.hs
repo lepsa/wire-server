@@ -150,7 +150,7 @@ testSFTDiscoveryLoopWhenSuccessful = do
 
   Async.race_ (Async.wait discoveryLoop) (System.timeout (30 # Second) $ takeMVar tick)
 
-  actualServers <- readIORef (sftServers sftEnv)
+  actualServers <- readIORef (servers sftEnv)
   delayCalls <- readTVarIO delayCallsTVar
   assertEqual "servers should be the ones read from DNS" (Discovered (mkSFTServers returnedEntries)) actualServers
   assertEqual "delay should be called with the configured interval" intervalInMicroseconds (head delayCalls)

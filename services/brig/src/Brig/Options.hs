@@ -125,10 +125,10 @@ instance FromJSON EmailAWSOpts
 data EmailSMTPCredentials = EmailSMTPCredentials
   { -- | Username to authenticate
     --   against the SMTP server
-    smtpUsername :: !Text,
+    username :: !Text,
     -- | File containing password to
     --   authenticate against the SMTP server
-    smtpPassword :: !FilePathSecrets
+    password :: !FilePathSecrets
   }
   deriving (Show, Generic)
 
@@ -136,20 +136,20 @@ instance FromJSON EmailSMTPCredentials
 
 data EmailSMTPOpts = EmailSMTPOpts
   { -- | Hostname of the SMTP server to connect to
-    smtpEndpoint :: !Endpoint,
-    smtpCredentials :: !(Maybe EmailSMTPCredentials),
+    endpoint :: !Endpoint,
+    credentials :: !(Maybe EmailSMTPCredentials),
     -- | Which type of connection to use
     --   against the SMTP server {tls,ssl,plain}
-    smtpConnType :: !SMTPConnType
+    connType :: !SMTPConnType
   }
   deriving (Show, Generic)
 
 instance FromJSON EmailSMTPOpts
 
 data StompOpts = StompOpts
-  { stompHost :: !Text,
-    stompPort :: !Int,
-    stompTls :: !Bool
+  { host :: !Text,
+    port :: !Int,
+    tls :: !Bool
   }
   deriving (Show, Generic)
 
@@ -230,13 +230,13 @@ instance FromJSON ProviderOpts
 
 data TeamOpts = TeamOpts
   { -- | Team Invitation URL template
-    tInvitationUrl :: !Text,
+    invitationUrl :: !Text,
     -- | Team Activation URL template
-    tActivationUrl :: !Text,
+    activationUrl :: !Text,
     -- | Team Creator Welcome URL
-    tCreatorWelcomeUrl :: !Text,
+    creatorWelcomeUrl :: !Text,
     -- | Team Member Welcome URL
-    tMemberWelcomeUrl :: !Text
+    memberWelcomeUrl :: !Text
   }
   deriving (Show, Generic)
 
@@ -336,8 +336,8 @@ data TurnServersSource
   deriving (Show)
 
 data TurnServersFiles = TurnServersFiles
-  { tsfServers :: !FilePath,
-    tsfServersV2 :: !FilePath
+  { servers :: !FilePath,
+    serversV2 :: !FilePath
   }
   deriving (Show)
 
@@ -348,8 +348,8 @@ instance FromJSON TurnServersFiles where
       <*> o .: "serversV2"
 
 data TurnDnsOpts = TurnDnsOpts
-  { tdoBaseDomain :: DNS.Domain,
-    tdoDiscoveryIntervalSeconds :: !(Maybe DiffTime)
+  { baseDomain :: DNS.Domain,
+    discoveryIntervalSeconds :: !(Maybe DiffTime)
   }
   deriving (Show)
 
@@ -710,8 +710,8 @@ setOAuthMaxActiveRefreshTokens = fromMaybe defaultOAuthMaxActiveRefreshTokens . 
 -- they are grandfathered), and feature-specific extra data (eg., TLL for self-deleting
 -- messages).  For now, we have something quick & simple.
 data AccountFeatureConfigs = AccountFeatureConfigs
-  { afcConferenceCallingDefNew :: !(Public.ImplicitLockStatus Public.ConferenceCallingConfig),
-    afcConferenceCallingDefNull :: !(Public.ImplicitLockStatus Public.ConferenceCallingConfig)
+  { defaultForNew :: !(Public.ImplicitLockStatus Public.ConferenceCallingConfig),
+    defaultForNull :: !(Public.ImplicitLockStatus Public.ConferenceCallingConfig)
   }
   deriving (Show, Eq, Generic)
 
@@ -740,34 +740,34 @@ instance FromJSON AccountFeatureConfigs where
 instance ToJSON AccountFeatureConfigs where
   toJSON
     AccountFeatureConfigs
-      { afcConferenceCallingDefNew,
-        afcConferenceCallingDefNull
+      { defaultForNew,
+        defaultForNull
       } =
       Aeson.object
         [ "conferenceCalling"
             Aeson..= Aeson.object
-              [ "defaultForNew" Aeson..= afcConferenceCallingDefNew,
-                "defaultForNull" Aeson..= afcConferenceCallingDefNull
+              [ "defaultForNew" Aeson..= defaultForNew,
+                "defaultForNull" Aeson..= defaultForNull
               ]
         ]
 
 getAfcConferenceCallingDefNewMaybe :: Lens.Getter Settings (Maybe (Public.WithStatus Public.ConferenceCallingConfig))
-getAfcConferenceCallingDefNewMaybe = Lens.to (Lens.^? (Lens.to setFeatureFlags . Lens._Just . Lens.to afcConferenceCallingDefNew . unImplicitLockStatus))
+getAfcConferenceCallingDefNewMaybe = Lens.to (Lens.^? (Lens.to setFeatureFlags . Lens._Just . Lens.to defaultForNew . unImplicitLockStatus))
 
 getAfcConferenceCallingDefNullMaybe :: Lens.Getter Settings (Maybe (Public.WithStatus Public.ConferenceCallingConfig))
-getAfcConferenceCallingDefNullMaybe = Lens.to (Lens.^? (Lens.to setFeatureFlags . Lens._Just . Lens.to afcConferenceCallingDefNull . unImplicitLockStatus))
+getAfcConferenceCallingDefNullMaybe = Lens.to (Lens.^? (Lens.to setFeatureFlags . Lens._Just . Lens.to defaultForNull . unImplicitLockStatus))
 
 getAfcConferenceCallingDefNew :: Lens.Getter Settings (Public.WithStatus Public.ConferenceCallingConfig)
-getAfcConferenceCallingDefNew = Lens.to (Public._unImplicitLockStatus . afcConferenceCallingDefNew . fromMaybe defAccountFeatureConfigs . setFeatureFlags)
+getAfcConferenceCallingDefNew = Lens.to (Public._unImplicitLockStatus . defaultForNew . fromMaybe defAccountFeatureConfigs . setFeatureFlags)
 
 getAfcConferenceCallingDefNull :: Lens.Getter Settings (Public.WithStatus Public.ConferenceCallingConfig)
-getAfcConferenceCallingDefNull = Lens.to (Public._unImplicitLockStatus . afcConferenceCallingDefNull . fromMaybe defAccountFeatureConfigs . setFeatureFlags)
+getAfcConferenceCallingDefNull = Lens.to (Public._unImplicitLockStatus . defaultForNull . fromMaybe defAccountFeatureConfigs . setFeatureFlags)
 
 defAccountFeatureConfigs :: AccountFeatureConfigs
 defAccountFeatureConfigs =
   AccountFeatureConfigs
-    { afcConferenceCallingDefNew = Public.ImplicitLockStatus Public.defFeatureStatus,
-      afcConferenceCallingDefNull = Public.ImplicitLockStatus Public.defFeatureStatus
+    { defaultForNew = Public.ImplicitLockStatus Public.defFeatureStatus,
+      defaultForNull = Public.ImplicitLockStatus Public.defFeatureStatus
     }
 
 -- | Customer extensions naturally are covered by the AGPL like everything else, but use them
@@ -816,10 +816,10 @@ newtype DomainsBlockedForRegistration = DomainsBlockedForRegistration [Domain]
   deriving newtype (Show, FromJSON, Generic)
 
 data SFTOptions = SFTOptions
-  { sftBaseDomain :: !DNS.Domain,
-    sftSRVServiceName :: !(Maybe ByteString), -- defaults to defSftServiceName if unset
-    sftDiscoveryIntervalSeconds :: !(Maybe DiffTime), -- defaults to defSftDiscoveryIntervalSeconds
-    sftListLength :: !(Maybe (Range 1 100 Int)) -- defaults to defSftListLength
+  { baseDomain :: !DNS.Domain,
+    srvServiceName :: !(Maybe ByteString), -- defaults to defSftServiceName if unset
+    discoveryIntervalSeconds :: !(Maybe DiffTime), -- defaults to defSftDiscoveryIntervalSeconds
+    listLength :: !(Maybe (Range 1 100 Int)) -- defaults to defSftListLength
   }
   deriving (Show, Generic)
 

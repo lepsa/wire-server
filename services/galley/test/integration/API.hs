@@ -424,7 +424,7 @@ postConvWithUnreachableRemoteUsers rbs = do
             newConvQualifiedUsers = joiners
           }
         <!! const 503 === statusCode
-    groupConvs <- filter ((== RegularConv) . cnvmType . cnvMetadata) <$> getAllConvs alice
+    groupConvs <- filter ((== RegularConv) . type' . cnvMetadata) <$> getAllConvs alice
     liftIO $
       assertEqual
         "Alice does have a group conversation, while she should not!"

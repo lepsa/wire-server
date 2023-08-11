@@ -55,10 +55,10 @@ sendActivationMail name email key code update = do
     selectTemplate False = activationEmail
 
 data ActivationEmail = ActivationEmail
-  { acmTo :: !Email,
-    acmName :: !Name,
-    acmKey :: !Code.Key,
-    acmCode :: !Code.Value
+  { to :: !Email,
+    name :: !Name,
+    key :: !Code.Key,
+    code :: !Code.Value
   }
 
 renderActivationMail :: ActivationEmail -> ActivationEmailTemplate -> TemplateBranding -> Mail
@@ -104,12 +104,12 @@ sendApprovalRequestMail name email url descr key val = do
   sendMail $ renderApprovalRequestMail mail tpl branding
 
 data ApprovalRequestEmail = ApprovalRequestEmail
-  { aprTo :: !Email,
-    aprName :: !Name,
-    aprUrl :: !HttpsUrl,
-    aprDescr :: !Text,
-    aprKey :: !Code.Key,
-    aprCode :: !Code.Value
+  { to :: !Email,
+    name :: !Name,
+    url :: !HttpsUrl,
+    descr :: !Text,
+    key :: !Code.Key,
+    code :: !Code.Value
   }
 
 renderApprovalRequestMail :: ApprovalRequestEmail -> ApprovalRequestEmailTemplate -> TemplateBranding -> Mail
@@ -155,8 +155,8 @@ sendApprovalConfirmMail name email = do
   sendMail $ renderApprovalConfirmMail mail tpl branding
 
 data ApprovalConfirmEmail = ApprovalConfirmEmail
-  { apcTo :: !Email,
-    apcName :: !Name
+  { to :: !Email,
+    name :: !Name
   }
 
 renderApprovalConfirmMail :: ApprovalConfirmEmail -> ApprovalConfirmEmailTemplate -> TemplateBranding -> Mail
@@ -191,9 +191,9 @@ sendPasswordResetMail to key code = do
   sendMail $ renderPwResetMail mail tpl branding
 
 data PasswordResetEmail = PasswordResetEmail
-  { pwrTo :: !Email,
-    pwrKey :: !Code.Key,
-    pwrCode :: !Code.Value
+  { to :: !Email,
+    key :: !Code.Key,
+    code :: !Code.Value
   }
 
 renderPwResetMail :: PasswordResetEmail -> PasswordResetEmailTemplate -> TemplateBranding -> Mail

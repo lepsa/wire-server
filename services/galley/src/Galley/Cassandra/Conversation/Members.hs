@@ -97,8 +97,8 @@ addMembers conv (fmap toUserRole -> UserList lusers rusers) = do
 removeMembersFromLocalConv :: ConvId -> UserList UserId -> Client ()
 removeMembersFromLocalConv cnv victims = void $ do
   UnliftIO.concurrently
-    (removeLocalMembersFromLocalConv cnv (ulLocals victims))
-    (removeRemoteMembersFromLocalConv cnv (ulRemotes victims))
+    (removeLocalMembersFromLocalConv cnv victims.locals)
+    (removeRemoteMembersFromLocalConv cnv victims.remotes)
 
 removeLocalMembersFromLocalConv :: ConvId -> [UserId] -> Client ()
 removeLocalMembersFromLocalConv _ [] = pure ()

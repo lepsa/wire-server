@@ -42,18 +42,49 @@ module Galley.Data.Conversation
   )
 where
 
-import Data.Id
-import Data.Misc
+import Data.Id (ConvId, Id (Id, toUUID), TeamId, UserId)
+import Data.Misc (Milliseconds)
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.UUID.Tagged qualified as U
 import Galley.Cassandra.Instances ()
 import Galley.Data.Conversation.Types
-import Imports hiding (Set)
-import Wire.API.Conversation hiding (Conversation)
+  ( Conversation (..),
+    NewConversation,
+  )
+import Imports
+  ( Alternative ((<|>)),
+    Bool,
+    Maybe,
+    Text,
+    ($),
+    (.),
+    (<$>),
+  )
+import Wire.API.Conversation
+  ( Access (InviteAccess),
+    AccessRole,
+    AccessRoleLegacy,
+    ConvType,
+    ConversationAccessData (ConversationAccessData),
+    ConversationMetadata
+      ( access,
+        accessRoles,
+        creator,
+        messageTimer,
+        name,
+        receiptMode,
+        team,
+        type'
+      ),
+    ReceiptMode,
+    defRole,
+    fromAccessRoleLegacy,
+    maybeRole,
+  )
 
 isConvDeleted :: Conversation -> Bool
-isConvDeleted = convDeleted
+isConvDeleted = deleted
 
 selfConv :: UserId -> ConvId
 selfConv uid = Id (toUUID uid)
@@ -66,19 +97,19 @@ localOne2OneConvId :: U.UUID U.V4 -> U.UUID U.V4 -> ConvId
 localOne2OneConvId a b = Id . U.unpack $ U.addv4 a b
 
 convType :: Conversation -> ConvType
-convType = cnvmType . convMetadata
+convType = type' . (.metadata)
 
 convSetType :: ConvType -> Conversation -> Conversation
-convSetType t c = c {convMetadata = (convMetadata c) {cnvmType = t}}
+convSetType t c = c {metadata = c.metadata {type' = t}}
 
 convTeam :: Conversation -> Maybe TeamId
-convTeam = cnvmTeam . convMetadata
+convTeam = team . (.metadata)
 
 convAccess :: Conversation -> [Access]
-convAccess = cnvmAccess . convMetadata
+convAccess = access . (.metadata)
 
 convAccessRoles :: Conversation -> Set AccessRole
-convAccessRoles = cnvmAccessRoles . convMetadata
+convAccessRoles = accessRoles . (.metadata)
 
 convAccessData :: Conversation -> ConversationAccessData
 convAccessData c =
@@ -87,13 +118,13 @@ convAccessData c =
     (convAccessRoles c)
 
 convCreator :: Conversation -> UserId
-convCreator = cnvmCreator . convMetadata
+convCreator = creator . (.metadata)
 
 convName :: Conversation -> Maybe Text
-convName = cnvmName . convMetadata
+convName = name . (.metadata)
 
 convSetName :: Maybe Text -> Conversation -> Conversation
-convSetName n c = c {convMetadata = (convMetadata c) {cnvmName = n}}
+convSetName n c = c {metadata = c.metadata {name = n}}
 
 defRegularConvAccess :: [Access]
 defRegularConvAccess = [InviteAccess]
@@ -102,7 +133,7 @@ parseAccessRoles :: Maybe AccessRoleLegacy -> Maybe (Set AccessRole) -> Maybe (S
 parseAccessRoles mbLegacy mbAccess = mbAccess <|> fromAccessRoleLegacy <$> mbLegacy
 
 convMessageTimer :: Conversation -> Maybe Milliseconds
-convMessageTimer = cnvmMessageTimer . convMetadata
+convMessageTimer = messageTimer . (.metadata)
 
 convReceiptMode :: Conversation -> Maybe ReceiptMode
-convReceiptMode = cnvmReceiptMode . convMetadata
+convReceiptMode = receiptMode . (.metadata)

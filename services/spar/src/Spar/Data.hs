@@ -57,9 +57,9 @@ schemaVersion = 17
 -- functions in this module need fewer effects.  See 'wrapMonadClientWithEnv' (as opposed to
 -- 'wrapMonadClient' where we don't need an 'Env').
 data Env = Env
-  { dataEnvNow :: UTCTime,
-    dataEnvMaxTTLAuthRequests :: TTL "authreq",
-    dataEnvMaxTTLAssertions :: TTL "authresp"
+  { now :: UTCTime,
+    maxTTLAuthRequests :: TTL "authreq",
+    maxTTLAssertions :: TTL "authresp"
   }
   deriving (Eq, Show)
 

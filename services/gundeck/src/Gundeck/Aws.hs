@@ -117,9 +117,9 @@ data Env = Env
   }
 
 data SNSEndpoint = SNSEndpoint
-  { _endpointToken :: !Push.Token,
-    _endpointEnabled :: !Bool,
-    _endpointUsers :: !(Set UserId)
+  { _token :: !Push.Token,
+    _enabled :: !Bool,
+    _users :: !(Set UserId)
   }
   deriving (Show)
 

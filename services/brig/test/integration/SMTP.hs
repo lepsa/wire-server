@@ -187,12 +187,12 @@ withMailServer s app action = do
     (const action)
 
 data ReceivedMail = ReceivedMail
-  { rmSender :: Postie.Address,
-    rmReceipients :: [Postie.Address],
+  { sender :: Postie.Address,
+    receipients :: [Postie.Address],
     -- | Contains all data sent to the SMTP server for this mail. (Including
     -- /From:/, /To:/, /Subject:/, ... lines.) I.e. `Postie.mailBody` is half of
     -- a lie; it's way more.
-    rmContent :: [String]
+    content :: [String]
   }
   deriving (Eq, Show)
 

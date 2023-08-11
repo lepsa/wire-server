@@ -41,14 +41,14 @@ testObject_ConversationList_20Conversation_user_1 =
             { cnvQualifiedId = Qualified (Id (fromJust (UUID.fromString "00000001-0000-0000-0000-000000000000"))) (Domain "golden.example.com"),
               cnvMetadata =
                 ConversationMetadata
-                  { cnvmType = RegularConv,
-                    cnvmCreator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000000000001")),
-                    cnvmAccess = [],
-                    cnvmAccessRoles = Set.empty,
-                    cnvmName = Just "",
-                    cnvmTeam = Just (Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000100000001"))),
-                    cnvmMessageTimer = Just (Ms {ms = 4760386328981119}),
-                    cnvmReceiptMode = Just (ReceiptMode {unReceiptMode = 0})
+                  { type' = RegularConv,
+                    creator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000000000001")),
+                    access = [],
+                    accessRoles = Set.empty,
+                    name = Just "",
+                    team = Just (Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000100000001"))),
+                    messageTimer = Just (Ms {ms = 4760386328981119}),
+                    receiptMode = Just (ReceiptMode {unReceiptMode = 0})
                   },
               cnvProtocol = ProtocolProteus,
               cnvMembers =

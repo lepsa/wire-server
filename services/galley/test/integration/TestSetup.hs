@@ -113,17 +113,17 @@ newtype TestM a = TestM {runTestM :: ReaderT TestSetup IO a}
 data FedClient (comp :: Component) = FedClient HTTP.Manager Endpoint
 
 data TestSetup = TestSetup
-  { _tsGConf :: Opts,
-    _tsIConf :: IntegrationConfig,
-    _tsManager :: Manager,
-    _tsUnversionedGalley :: GalleyR,
-    _tsUnversionedBrig :: BrigR,
-    _tsCannon :: CannonR,
-    _tsAwsEnv :: Maybe Aws.Env,
-    _tsMaxConvSize :: Word16,
-    _tsCass :: Cql.ClientState,
-    _tsFedGalleyClient :: FedClient 'Galley,
-    _tsTeamEventWatcher :: Maybe (SQS.SQSWatcher TeamEvent)
+  { _gConf :: Opts,
+    _iConf :: IntegrationConfig,
+    _manager :: Manager,
+    _unversionedGalley :: GalleyR,
+    _unversionedBrig :: BrigR,
+    _cannon :: CannonR,
+    _awsEnv :: Maybe Aws.Env,
+    _maxConvSize :: Word16,
+    _cass :: Cql.ClientState,
+    _fedGalleyClient :: FedClient 'Galley,
+    _teamEventWatcher :: Maybe (SQS.SQSWatcher TeamEvent)
   }
 
 makeLenses ''TestSetup

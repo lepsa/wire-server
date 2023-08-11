@@ -1367,15 +1367,15 @@ removeBot brig uid cid bid =
       . header "Z-Connection" "conn"
 
 data RemoveBot = RemoveBot
-  { _rmBotConv :: !ConvId,
-    _rmBotId :: !BotId
+  { conversation :: !ConvId,
+    bot :: !BotId
   }
 
 instance ToJSON RemoveBot where
   toJSON a =
     object
-      [ "conversation" .= _rmBotConv a,
-        "bot" .= _rmBotId a
+      [ "conversation" .= a.conversation,
+        "bot" .= a.bot
       ]
 
 removeBotInternal ::
@@ -1783,14 +1783,14 @@ runService config sPort sock mkApp go = do
   go buf `finally` liftIO (Async.cancel srv)
 
 data TestBot = TestBot
-  { testBotId :: !BotId,
-    testBotClient :: !ClientId,
-    testBotConv :: !Ext.BotConvView,
-    testBotToken :: !Text,
-    testBotLastPrekey :: !LastPrekey,
-    testBotPrekeys :: ![Prekey],
-    testBotLocale :: !Locale,
-    testBotOrigin :: !Ext.BotUserView
+  { id :: !BotId,
+    client :: !ClientId,
+    conv :: !Ext.BotConvView,
+    token :: !Text,
+    lastPrekey :: !LastPrekey,
+    prekeys :: ![Prekey],
+    locale :: !Locale,
+    origin :: !Ext.BotUserView
   }
   deriving (Eq, Show)
 

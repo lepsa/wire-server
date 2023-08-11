@@ -26,19 +26,19 @@ module Galley.Intra.Push
     PushEvent (..),
 
     -- * Push Configuration
-    pushConn,
-    pushTransient,
-    pushRoute,
-    pushNativePriority,
-    pushAsync,
-    pushRecipients,
+    conn,
+    transient,
+    route,
+    nativePriority,
+    async,
+    recipients,
 
     -- * Push Recipients
     Recipient,
     recipient,
     userRecipient,
-    recipientUserId,
-    recipientClients,
+    userId,
+    clients,
 
     -- * Re-Exports
     Gundeck.Route (..),

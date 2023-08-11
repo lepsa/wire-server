@@ -25,7 +25,7 @@ module CargoHold.App
     Env,
     newEnv,
     closeEnv,
-    aws,
+    CargoHold.App.aws,
     multiIngress,
     httpManager,
     http2Manager,
@@ -34,7 +34,7 @@ module CargoHold.App
     requestId,
     localUnit,
     options,
-    settings,
+    CargoHold.App.settings,
 
     -- * App Monad
     AppT,
@@ -93,18 +93,18 @@ data Env = Env
 makeLenses ''Env
 
 settings :: Lens' Env Opt.Settings
-settings = options . optSettings
+settings = options . Opt.settings
 
 newEnv :: Opts -> IO Env
 newEnv o = do
   met <- Metrics.metrics
-  lgr <- Log.mkLogger (o ^. optLogLevel) (o ^. optLogNetStrings) (o ^. optLogFormat)
+  lgr <- Log.mkLogger (o ^. Opt.logLevel) (o ^. logNetStrings) (o ^. logFormat)
   checkOpts o lgr
-  mgr <- initHttpManager (o ^. optAws . awsS3Compatibility)
+  mgr <- initHttpManager (o ^. Opt.aws . awsS3Compatibility)
   h2mgr <- initHttp2Manager
-  ama <- initAws (o ^. optAws) lgr mgr
+  ama <- initAws (o ^. Opt.aws) lgr mgr
   multiIngressAWS <- initMultiIngressAWS lgr mgr
-  let loc = toLocalUnsafe (o ^. optSettings . Opt.setFederationDomain) ()
+  let loc = toLocalUnsafe (o ^. Opt.settings . Opt.federationDomain) ()
   pure $ Env ama met lgr mgr h2mgr def o loc multiIngressAWS
   where
     initMultiIngressAWS :: Logger -> Manager -> IO (Map String AWS.Env)
@@ -114,10 +114,10 @@ newEnv o = do
           ( \(k, v) ->
               initAws (patchS3DownloadEndpoint v) lgr mgr >>= \v' -> pure (k, v')
           )
-          (Map.assocs (o ^. optAws . Opt.optMultiIngress . non Map.empty))
+          (Map.assocs (o ^. Opt.aws . Opt.optMultiIngress . non Map.empty))
 
     patchS3DownloadEndpoint :: AWSEndpoint -> AWSOpts
-    patchS3DownloadEndpoint endpoint = (o ^. optAws) & awsS3DownloadEndpoint ?~ endpoint
+    patchS3DownloadEndpoint endpoint = (o ^. Opt.aws) & awsS3DownloadEndpoint ?~ endpoint
 
 -- | Validate (some) options (`Opts`)
 --
@@ -134,13 +134,13 @@ checkOpts opts lgr = do
     error errorMsg
   where
     multiIngressConfigured :: Bool
-    multiIngressConfigured = (not . null) (opts ^. (optAws . Opt.optMultiIngress . non Map.empty))
+    multiIngressConfigured = (not . null) (opts ^. (Opt.aws . Opt.optMultiIngress . non Map.empty))
 
     cloudFrontConfigured :: Bool
-    cloudFrontConfigured = isJust (opts ^. (optAws . Opt.awsCloudFront))
+    cloudFrontConfigured = isJust (opts ^. (Opt.aws . Opt.awsCloudFront))
 
     singleAwsDownloadEndpointConfigured :: Bool
-    singleAwsDownloadEndpointConfigured = isJust (opts ^. (optAws . Opt.awsS3DownloadEndpoint))
+    singleAwsDownloadEndpointConfigured = isJust (opts ^. (Opt.aws . Opt.awsS3DownloadEndpoint))
 
 initAws :: AWSOpts -> Logger -> Manager -> IO AWS.Env
 initAws o l = AWS.mkEnv l (o ^. awsS3Endpoint) addrStyle downloadEndpoint (o ^. awsS3Bucket) (o ^. awsCloudFront)

@@ -67,8 +67,8 @@ idpDbErrorToSparError :: Member (Error SparError) r => Sem (Error IdpDbError ': 
 idpDbErrorToSparError = mapError (SAML.CustomError . IdpDbError)
 
 data RunHttpEnv r = RunHttpEnv
-  { rheManager :: Bilge.Manager,
-    rheRequest :: Bilge.Request
+  { manager :: Bilge.Manager,
+    request :: Bilge.Request
   }
 
 newtype RunHttp r a = RunHttp
@@ -110,7 +110,7 @@ instance
   MonadSparToGalley (RunHttp r)
   where
   call modreq = do
-    req <- asks rheRequest
+    req <- asks request
     httpLbs req modreq
 
 instance
@@ -120,5 +120,5 @@ instance
   MonadSparToBrig (RunHttp r)
   where
   call modreq = do
-    req <- asks rheRequest
+    req <- asks request
     httpLbs req modreq

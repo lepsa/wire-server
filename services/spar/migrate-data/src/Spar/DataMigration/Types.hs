@@ -51,18 +51,18 @@ data DryRun = DryRun | NoDryRun
   deriving (Show, Eq)
 
 data MigratorSettings = MigratorSettings
-  { _setCasSpar :: !CassandraSettings,
-    _setCasBrig :: !CassandraSettings,
-    _setDebug :: Debug,
-    _setDryRun :: DryRun,
-    _setPageSize :: Int32
+  { _casSpar :: !CassandraSettings,
+    _casBrig :: !CassandraSettings,
+    _debug :: Debug,
+    _dryRun :: DryRun,
+    _pageSize :: Int32
   }
   deriving (Show)
 
 data CassandraSettings = CassandraSettings
-  { _cHosts :: !String,
-    _cPort :: !Word16,
-    _cKeyspace :: !C.Keyspace
+  { _hosts :: !String,
+    _port :: !Word16,
+    _keyspace :: !C.Keyspace
   }
   deriving (Show)
 

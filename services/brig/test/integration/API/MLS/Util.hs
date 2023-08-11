@@ -43,8 +43,8 @@ data SetKey = SetKey | DontSetKey
   deriving (Eq)
 
 data KeyingInfo = KeyingInfo
-  { kiSetKey :: SetKey,
-    kiLifetime :: Maybe Timeout
+  { setKey :: SetKey,
+    lifetime :: Maybe Timeout
   }
 
 instance Default KeyingInfo where

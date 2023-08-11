@@ -39,13 +39,13 @@ import Wire.API.MLS.Keys
 type MLSPrivateKeyPaths = Map SignaturePurpose (Map SignatureSchemeTag FilePath)
 
 data MLSPrivateKeyException = MLSPrivateKeyException
-  { mpkePath :: FilePath,
-    mpkeMsg :: String
+  { path :: FilePath,
+    msg :: String
   }
   deriving (Eq, Show, Typeable)
 
 instance Exception MLSPrivateKeyException where
-  displayException e = mpkePath e <> ": " <> mpkeMsg e
+  displayException e = e.path <> ": " <> e.msg
 
 mapToFunction :: (Ord k, Monoid m) => Map k m -> k -> m
 mapToFunction m x = Map.findWithDefault mempty x m

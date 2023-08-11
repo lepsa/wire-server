@@ -64,95 +64,95 @@ data UserTemplates = UserTemplates
   }
 
 data ActivationSmsTemplate = ActivationSmsTemplate
-  { activationSmslUrl :: !Template,
-    activationSmsText :: !Template,
-    activationSmsSender :: !Text
+  { lUrl :: !Template,
+    text :: !Template,
+    sender :: !Text
   }
 
 data ActivationCallTemplate = ActivationCallTemplate
-  { activationCallText :: !Template
+  { text :: !Template
   }
 
 data VerificationEmailTemplate = VerificationEmailTemplate
-  { verificationEmailUrl :: !Template,
-    verificationEmailSubject :: !Template,
-    verificationEmailBodyText :: !Template,
-    verificationEmailBodyHtml :: !Template,
-    verificationEmailSender :: !Email,
-    verificationEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data ActivationEmailTemplate = ActivationEmailTemplate
-  { activationEmailUrl :: !Template,
-    activationEmailSubject :: !Template,
-    activationEmailBodyText :: !Template,
-    activationEmailBodyHtml :: !Template,
-    activationEmailSender :: !Email,
-    activationEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data TeamActivationEmailTemplate = TeamActivationEmailTemplate
-  { teamActivationEmailUrl :: !Template,
-    teamActivationEmailSubject :: !Template,
-    teamActivationEmailBodyText :: !Template,
-    teamActivationEmailBodyHtml :: !Template,
-    teamActivationEmailSender :: !Email,
-    teamActivationEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data DeletionEmailTemplate = DeletionEmailTemplate
-  { deletionEmailUrl :: !Template,
-    deletionEmailSubject :: !Template,
-    deletionEmailBodyText :: !Template,
-    deletionEmailBodyHtml :: !Template,
-    deletionEmailSender :: !Email,
-    deletionEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data PasswordResetEmailTemplate = PasswordResetEmailTemplate
-  { passwordResetEmailUrl :: !Template,
-    passwordResetEmailSubject :: !Template,
-    passwordResetEmailBodyText :: !Template,
-    passwordResetEmailBodyHtml :: !Template,
-    passwordResetEmailSender :: !Email,
-    passwordResetEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data PasswordResetSmsTemplate = PasswordResetSmsTemplate
-  { passwordResetSmsText :: !Template,
-    passwordResetSmsSender :: !Text
+  { text :: !Template,
+    sender :: !Text
   }
 
 data LoginSmsTemplate = LoginSmsTemplate
-  { loginSmsUrl :: !Template,
-    loginSmsText :: !Template,
-    loginSmsSender :: !Text
+  { url :: !Template,
+    text :: !Template,
+    sender :: !Text
   }
 
 data LoginCallTemplate = LoginCallTemplate
-  { loginCallText :: !Template
+  { text :: !Template
   }
 
 data DeletionSmsTemplate = DeletionSmsTemplate
-  { deletionSmsUrl :: !Template,
-    deletionSmsText :: !Template,
-    deletionSmsSender :: !Text
+  { url :: !Template,
+    text :: !Template,
+    sender :: !Text
   }
 
 data NewClientEmailTemplate = NewClientEmailTemplate
-  { newClientEmailSubject :: !Template,
-    newClientEmailBodyText :: !Template,
-    newClientEmailBodyHtml :: !Template,
-    newClientEmailSender :: !Email,
-    newClientEmailSenderName :: !Text
+  { subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data SecondFactorVerificationEmailTemplate = SecondFactorVerificationEmailTemplate
-  { sndFactorVerificationEmailSubject :: !Template,
-    sndFactorVerificationEmailBodyText :: !Template,
-    sndFactorVerificationEmailBodyHtml :: !Template,
-    sndFactorVerificationEmailSender :: !Email,
-    sndFactorVerificationEmailSenderName :: !Text
+  { subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 loadUserTemplates :: Opt.Opts -> IO (Localised UserTemplates)
@@ -257,8 +257,8 @@ loadUserTemplates o = readLocalesDir defLocale templateDir "user" $ \fp ->
     emailSender = Opt.emailSender gOptions
     smsSender = Opt.smsSender gOptions
     smsActivationUrl = template $ Opt.smsActivationUrl uOptions
-    activationUrl = template $ Opt.activationUrl uOptions
-    teamActivationUrl = template $ Opt.tActivationUrl tOptions
+    activationUrl = template uOptions.activationUrl
+    teamActivationUrl = template tOptions.activationUrl
     passwordResetUrl = template $ Opt.passwordResetUrl uOptions
     deletionUserUrl = template $ Opt.deletionUrl uOptions
     defLocale = Opt.setDefaultTemplateLocale (Opt.optSettings o)

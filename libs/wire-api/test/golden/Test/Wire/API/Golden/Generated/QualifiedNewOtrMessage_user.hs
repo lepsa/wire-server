@@ -30,8 +30,8 @@ import Wire.API.User.Client
 testObject_QualifiedNewOtrMessage_user_1 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_1 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "2"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "2"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -53,11 +53,11 @@ testObject_QualifiedNewOtrMessage_user_1 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "",
-      qualifiedNewOtrClientMismatchStrategy =
+      nativePush = True,
+      transient = True,
+      nativePriority = Just HighPriority,
+      data' = "",
+      clientMismatchStrategy =
         MismatchIgnoreOnly
           ( Set.fromList
               [ Qualified
@@ -76,47 +76,45 @@ testObject_QualifiedNewOtrMessage_user_1 =
 testObject_QualifiedNewOtrMessage_user_2 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_2 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "7"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = "",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+    { sender = ClientId {client = "7"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = True,
+      transient = False,
+      nativePriority = Just LowPriority,
+      data' = "",
+      clientMismatchStrategy = MismatchReportAll
     }
 
 testObject_QualifiedNewOtrMessage_user_3 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_3 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "5"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "5"},
+      recipients =
         QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Nothing,
-      qualifiedNewOtrData = "#\DC3\133",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+      nativePush = True,
+      transient = False,
+      nativePriority = Nothing,
+      data' = "#\DC3\133",
+      clientMismatchStrategy = MismatchReportAll
     }
 
 testObject_QualifiedNewOtrMessage_user_4 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_4 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "7"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "1i\213",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreAll
+    { sender = ClientId {client = "7"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = True,
+      transient = True,
+      nativePriority = Just HighPriority,
+      data' = "1i\213",
+      clientMismatchStrategy = MismatchIgnoreAll
     }
 
 testObject_QualifiedNewOtrMessage_user_5 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_5 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "0"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "0"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -131,11 +129,11 @@ testObject_QualifiedNewOtrMessage_user_5 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "v)",
-      qualifiedNewOtrClientMismatchStrategy =
+      nativePush = False,
+      transient = False,
+      nativePriority = Just HighPriority,
+      data' = "v)",
+      clientMismatchStrategy =
         MismatchReportOnly
           ( Set.fromList
               [ Qualified
@@ -149,21 +147,20 @@ testObject_QualifiedNewOtrMessage_user_5 =
 testObject_QualifiedNewOtrMessage_user_6 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_6 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "3"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "<yQ",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportOnly (Set.fromList [])
+    { sender = ClientId {client = "3"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = False,
+      transient = False,
+      nativePriority = Just HighPriority,
+      data' = "<yQ",
+      clientMismatchStrategy = MismatchReportOnly (Set.fromList [])
     }
 
 testObject_QualifiedNewOtrMessage_user_7 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_7 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "1"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "1"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -179,33 +176,33 @@ testObject_QualifiedNewOtrMessage_user_7 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "\234\SYN\171",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+      nativePush = False,
+      transient = False,
+      nativePriority = Just HighPriority,
+      data' = "\234\SYN\171",
+      clientMismatchStrategy = MismatchReportAll
     }
 
 testObject_QualifiedNewOtrMessage_user_8 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_8 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "4"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "4"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap = QualifiedUserClientMap (Map.fromList [(Domain "cg7t2.rf-2", Map.empty)])
           },
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = "",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreAll
+      nativePush = True,
+      transient = True,
+      nativePriority = Just LowPriority,
+      data' = "",
+      clientMismatchStrategy = MismatchIgnoreAll
     }
 
 testObject_QualifiedNewOtrMessage_user_9 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_9 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "5"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "5"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -219,18 +216,18 @@ testObject_QualifiedNewOtrMessage_user_9 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "\189u",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreOnly (Set.fromList [])
+      nativePush = False,
+      transient = True,
+      nativePriority = Just HighPriority,
+      data' = "\189u",
+      clientMismatchStrategy = MismatchIgnoreOnly (Set.fromList [])
     }
 
 testObject_QualifiedNewOtrMessage_user_10 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_10 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "8"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "8"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -244,24 +241,23 @@ testObject_QualifiedNewOtrMessage_user_10 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Nothing,
-      qualifiedNewOtrData = "GL\ACK",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreAll
+      nativePush = False,
+      transient = False,
+      nativePriority = Nothing,
+      data' = "GL\ACK",
+      clientMismatchStrategy = MismatchIgnoreAll
     }
 
 testObject_QualifiedNewOtrMessage_user_11 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_11 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "7"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = "",
-      qualifiedNewOtrClientMismatchStrategy =
+    { sender = ClientId {client = "7"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = False,
+      transient = True,
+      nativePriority = Just LowPriority,
+      data' = "",
+      clientMismatchStrategy =
         MismatchIgnoreOnly
           ( Set.fromList
               [ Qualified
@@ -277,14 +273,13 @@ testObject_QualifiedNewOtrMessage_user_11 =
 testObject_QualifiedNewOtrMessage_user_12 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_12 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "6"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = "\192\162\201",
-      qualifiedNewOtrClientMismatchStrategy =
+    { sender = ClientId {client = "6"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = False,
+      transient = True,
+      nativePriority = Just LowPriority,
+      data' = "\192\162\201",
+      clientMismatchStrategy =
         MismatchReportOnly
           ( Set.fromList
               [ Qualified
@@ -301,8 +296,8 @@ testObject_QualifiedNewOtrMessage_user_12 =
 testObject_QualifiedNewOtrMessage_user_13 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_13 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "8"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "8"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -322,31 +317,30 @@ testObject_QualifiedNewOtrMessage_user_13 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = " ",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportOnly (Set.fromList [])
+      nativePush = False,
+      transient = False,
+      nativePriority = Just LowPriority,
+      data' = " ",
+      clientMismatchStrategy = MismatchReportOnly (Set.fromList [])
     }
 
 testObject_QualifiedNewOtrMessage_user_14 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_14 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "0"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Nothing,
-      qualifiedNewOtrData = "zC",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreOnly (Set.fromList [])
+    { sender = ClientId {client = "0"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = True,
+      transient = True,
+      nativePriority = Nothing,
+      data' = "zC",
+      clientMismatchStrategy = MismatchIgnoreOnly (Set.fromList [])
     }
 
 testObject_QualifiedNewOtrMessage_user_15 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_15 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "2"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "2"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -361,18 +355,18 @@ testObject_QualifiedNewOtrMessage_user_15 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = "@\246a",
-      qualifiedNewOtrClientMismatchStrategy = MismatchIgnoreAll
+      nativePush = True,
+      transient = True,
+      nativePriority = Just LowPriority,
+      data' = "@\246a",
+      clientMismatchStrategy = MismatchIgnoreAll
     }
 
 testObject_QualifiedNewOtrMessage_user_16 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_16 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "1"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "1"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -394,24 +388,23 @@ testObject_QualifiedNewOtrMessage_user_16 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "\149q",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+      nativePush = False,
+      transient = True,
+      nativePriority = Just HighPriority,
+      data' = "\149q",
+      clientMismatchStrategy = MismatchReportAll
     }
 
 testObject_QualifiedNewOtrMessage_user_17 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_17 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "8"},
-      qualifiedNewOtrRecipients =
-        QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "\r\185",
-      qualifiedNewOtrClientMismatchStrategy =
+    { sender = ClientId {client = "8"},
+      recipients = QualifiedOtrRecipients {qualifiedOtrRecipientsMap = QualifiedUserClientMap Map.empty},
+      nativePush = True,
+      transient = False,
+      nativePriority = Just HighPriority,
+      data' = "\r\185",
+      clientMismatchStrategy =
         MismatchReportOnly
           ( Set.fromList
               [ Qualified
@@ -424,8 +417,8 @@ testObject_QualifiedNewOtrMessage_user_17 =
 testObject_QualifiedNewOtrMessage_user_18 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_18 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "7"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "7"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -441,18 +434,18 @@ testObject_QualifiedNewOtrMessage_user_18 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Just HighPriority,
-      qualifiedNewOtrData = "5A",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+      nativePush = True,
+      transient = True,
+      nativePriority = Just HighPriority,
+      data' = "5A",
+      clientMismatchStrategy = MismatchReportAll
     }
 
 testObject_QualifiedNewOtrMessage_user_19 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_19 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "0"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "0"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -468,11 +461,11 @@ testObject_QualifiedNewOtrMessage_user_19 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = True,
-      qualifiedNewOtrTransient = True,
-      qualifiedNewOtrNativePriority = Nothing,
-      qualifiedNewOtrData = "\237i'",
-      qualifiedNewOtrClientMismatchStrategy =
+      nativePush = True,
+      transient = True,
+      nativePriority = Nothing,
+      data' = "\237i'",
+      clientMismatchStrategy =
         MismatchReportOnly
           ( Set.fromList
               [ Qualified
@@ -485,8 +478,8 @@ testObject_QualifiedNewOtrMessage_user_19 =
 testObject_QualifiedNewOtrMessage_user_20 :: QualifiedNewOtrMessage
 testObject_QualifiedNewOtrMessage_user_20 =
   QualifiedNewOtrMessage
-    { qualifiedNewOtrSender = ClientId {client = "5"},
-      qualifiedNewOtrRecipients =
+    { sender = ClientId {client = "5"},
+      recipients =
         QualifiedOtrRecipients
           { qualifiedOtrRecipientsMap =
               QualifiedUserClientMap
@@ -505,9 +498,9 @@ testObject_QualifiedNewOtrMessage_user_20 =
                     ]
                 )
           },
-      qualifiedNewOtrNativePush = False,
-      qualifiedNewOtrTransient = False,
-      qualifiedNewOtrNativePriority = Just LowPriority,
-      qualifiedNewOtrData = " ",
-      qualifiedNewOtrClientMismatchStrategy = MismatchReportAll
+      nativePush = False,
+      transient = False,
+      nativePriority = Just LowPriority,
+      data' = " ",
+      clientMismatchStrategy = MismatchReportAll
     }

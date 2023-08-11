@@ -72,7 +72,7 @@ codeStoreToCassandra =
     toRecord ::
       (PasswordResetCode, UserId, Maybe Int32, Maybe UTCTime) ->
       PRQueryData Maybe
-    toRecord (prqdCode, prqdUser, prqdRetries, prqdTimeout) =
+    toRecord (code, user, retries, timeout) =
       PRQueryData {..}
 
 genEmailCode :: MonadIO m => m PasswordResetCode

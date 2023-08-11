@@ -59,8 +59,8 @@ type TemplateBranding = Text -> Text
 
 -- | Localised templates.
 data Localised a = Localised
-  { locDefault :: !(Locale, a),
-    locOther :: !(Map Locale a)
+  { default' :: !(Locale, a),
+    other :: !(Map Locale a)
   }
 
 readLocalesDir ::
@@ -103,13 +103,13 @@ forLocale ::
   -- associated value.
   (Locale, a)
 forLocale pref t = case pref of
-  Just l -> fromMaybe (locDefault t) (select l)
-  Nothing -> locDefault t
+  Just l -> fromMaybe (default' t) (select l)
+  Nothing -> default' t
   where
     select l =
       let l' = l {lCountry = Nothing}
-          loc = Map.lookup l (locOther t)
-          lan = Map.lookup l' (locOther t)
+          loc = Map.lookup l (other t)
+          lan = Map.lookup l' (other t)
        in (l,) <$> loc <|> (l',) <$> lan
 
 readTemplateWithDefault ::

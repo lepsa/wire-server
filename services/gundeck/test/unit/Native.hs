@@ -62,8 +62,8 @@ serialiseOkProp t = ioProperty $ do
 -- Types
 
 data SnsNotification = SnsNotification
-  { snsNotifTransport :: !Transport,
-    snsNotifData :: !SnsData
+  { transport :: !Transport,
+    data' :: !SnsData
   }
   deriving (Eq, Show)
 
@@ -95,8 +95,8 @@ snsNotifBundle n = case snsNotifData n of
   SnsApnsData d -> apnsBundle d
 
 data GcmData = GcmData
-  { gcmPriority :: !Text,
-    gcmBundle :: !Bundle
+  { priority :: !Text,
+    bundle :: !Bundle
   }
   deriving (Eq, Show)
 
@@ -107,8 +107,8 @@ instance FromJSON GcmData where
       <*> o .: "data"
 
 data ApnsData = ApnsData
-  { apnsMeta :: !Object,
-    apnsBundle :: !Bundle
+  { meta :: !Object,
+    bundle :: !Bundle
   }
   deriving (Eq, Show)
 
@@ -130,8 +130,8 @@ instance FromJSON Bundle where
       _ -> mempty
 
 data PlainData = PlainData
-  { plainNotif :: !Notification,
-    plainUser :: !(Maybe UserId)
+  { notif :: !Notification,
+    user :: !(Maybe UserId)
   }
   deriving (Eq, Show)
 

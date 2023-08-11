@@ -51,8 +51,8 @@ data DeliveryFailure
   deriving (Eq, Show)
 
 data Event = Event
-  { _evType :: !EventType,
-    _evEndpoint :: !EndpointArn
+  { _type :: !EventType,
+    _endpoint :: !EndpointArn
   }
   deriving (Show)
 

@@ -46,7 +46,7 @@ newConnectConversationWithRemote creator users =
   NewConversation
     { ncMetadata =
         (defConversationMetadata (tUnqualified creator))
-          { cnvmType = One2OneConv
+          { type' = One2OneConv
           },
       ncUsers = fmap toUserRole users,
       ncProtocol = ProtocolProteusTag

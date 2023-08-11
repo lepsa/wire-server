@@ -46,10 +46,10 @@ import System.Logger.Extended (Level, LogFormat)
 import Wire.API.Routes.Version
 
 data Cannon = Cannon
-  { _cannonHost :: !String,
-    _cannonPort :: !Word16,
-    _cannonExternalHost :: !(Maybe Text),
-    _cannonExternalHostFile :: !(Maybe FilePath)
+  { _host :: !String,
+    _port :: !Word16,
+    _externalHost :: !(Maybe Text),
+    _externalHostFile :: !(Maybe FilePath)
   }
   deriving (Eq, Show, Generic)
 
@@ -58,8 +58,8 @@ makeFields ''Cannon
 deriveApiFieldJSON ''Cannon
 
 data Gundeck = Gundeck
-  { _gundeckHost :: !Text,
-    _gundeckPort :: !Word16
+  { _host :: !Text,
+    _port :: !Word16
   }
   deriving (Eq, Show, Generic)
 
@@ -69,14 +69,14 @@ deriveApiFieldJSON ''Gundeck
 
 data DrainOpts = DrainOpts
   { -- | Maximum amount of time draining should take. Must not be set to 0.
-    _drainOptsGracePeriodSeconds :: Word64,
+    _gracePeriodSeconds :: Word64,
     -- | Maximum amount of time between batches, this speeds up draining in case
     -- there are not many users connected. Must not be set to 0.
-    _drainOptsMillisecondsBetweenBatches :: Word64,
+    _millisecondsBetweenBatches :: Word64,
     -- | Batch size is calculated considering actual number of websockets and
     -- gracePeriod. If this number is too little, '_drainOptsMinBatchSize' is
     -- used.
-    _drainOptsMinBatchSize :: Word64
+    _minBatchSize :: Word64
   }
   deriving (Eq, Show, Generic)
 
@@ -85,13 +85,13 @@ makeFields ''DrainOpts
 deriveApiFieldJSON ''DrainOpts
 
 data Opts = Opts
-  { _optsCannon :: !Cannon,
-    _optsGundeck :: !Gundeck,
-    _optsLogLevel :: !Level,
-    _optsLogNetStrings :: !(Maybe (Last Bool)),
-    _optsLogFormat :: !(Maybe (Last LogFormat)),
-    _optsDrainOpts :: DrainOpts,
-    _optsDisabledAPIVersions :: Maybe (Set Version)
+  { _cannon :: !Cannon,
+    _gundeck :: !Gundeck,
+    _logLevel :: !Level,
+    _logNetStrings :: !(Maybe (Last Bool)),
+    _logFormat :: !(Maybe (Last LogFormat)),
+    _drainOpts :: DrainOpts,
+    _disabledAPIVersions :: Maybe (Set Version)
   }
   deriving (Eq, Show, Generic)
 

@@ -127,13 +127,13 @@ data SFTEnv = SFTEnv
   { -- | Starts off as `NotDiscoveredYet`, once it has servers, it should never
     -- go back to `NotDiscoveredYet` and continue having stale values if
     -- subsequent discoveries fail
-    sftServers :: IORef (Discovery SFTServers),
-    sftDomain :: DNS.Domain,
+    servers :: IORef (Discovery SFTServers),
+    domain :: DNS.Domain,
     -- | Microseconds, as expected by 'threadDelay'
-    sftDiscoveryInterval :: Int,
+    discoveryInterval :: Int,
     -- | maximum amount of servers to give out,
     -- even if more are in the SRV record
-    sftListLength :: Range 1 100 Int
+    listLength :: Range 1 100 Int
   }
 
 data Discovery a
@@ -187,16 +187,16 @@ mkSFTDomain SFTOptions {..} = DNS.normalize $ maybe defSftServiceName ("_" <>) s
 
 sftDiscoveryLoop :: Members [DNSLookup, TinyLog, Delay, Embed IO] r => SFTEnv -> Sem r ()
 sftDiscoveryLoop SFTEnv {..} =
-  srvDiscoveryLoop sftDomain sftDiscoveryInterval $
-    atomicWriteIORef sftServers . Discovered . SFTServers
+  srvDiscoveryLoop domain discoveryInterval $
+    atomicWriteIORef servers . Discovered . SFTServers
 
 mkSFTEnv :: SFTOptions -> IO SFTEnv
 mkSFTEnv opts =
   SFTEnv
     <$> newIORef NotDiscoveredYet
     <*> pure (mkSFTDomain opts)
-    <*> pure (diffTimeToMicroseconds (fromMaybe defSrvDiscoveryIntervalSeconds (Opts.sftDiscoveryIntervalSeconds opts)))
-    <*> pure (fromMaybe defSftListLength (Opts.sftListLength opts))
+    <*> pure (diffTimeToMicroseconds (fromMaybe defSrvDiscoveryIntervalSeconds (Opts.discoveryIntervalSeconds opts)))
+    <*> pure (fromMaybe defSftListLength (Opts.listLength opts))
 
 -- | Start SFT service discovery synchronously
 startSFTServiceDiscovery :: Log.Logger -> SFTEnv -> IO ()
@@ -217,12 +217,12 @@ data TurnServers
   | TurnServersFromDNS Opts.TurnDnsOpts TurnServersRef TurnServersRef TurnServersRef TurnServersRef
 
 data TurnEnv = TurnEnv
-  { _turnServers :: TurnServers,
-    _turnTokenTTL :: Word32,
-    _turnConfigTTL :: Word32,
-    _turnSecret :: ByteString,
-    _turnSHA512 :: Digest,
-    _turnPrng :: GenIO
+  { _servers :: TurnServers,
+    _tokenTTL :: Word32,
+    _configTTL :: Word32,
+    _secret :: ByteString,
+    _sha512 :: Digest,
+    _prng :: GenIO
   }
 
 makeLenses ''TurnEnv
@@ -273,10 +273,10 @@ startTurnDiscovery l w env = do
 
 startDNSBasedTurnDiscovery :: Log.Logger -> Opts.TurnDnsOpts -> TurnServersRef -> TurnServersRef -> TurnServersRef -> TurnServersRef -> IO [Async ()]
 startDNSBasedTurnDiscovery logger opts deprecatedUdpRef udpRef tcpRef tlsRef = do
-  let udpDomain = DNS.normalize $ "_turn._udp." <> Opts.tdoBaseDomain opts
-      tcpDomain = DNS.normalize $ "_turn._tcp." <> Opts.tdoBaseDomain opts
-      tlsDomain = DNS.normalize $ "_turns._tcp." <> Opts.tdoBaseDomain opts
-      interval = diffTimeToMicroseconds (fromMaybe defSrvDiscoveryIntervalSeconds (Opts.tdoDiscoveryIntervalSeconds opts))
+  let udpDomain = DNS.normalize $ "_turn._udp." <> Opts.baseDomain opts
+      tcpDomain = DNS.normalize $ "_turn._tcp." <> Opts.baseDomain opts
+      tlsDomain = DNS.normalize $ "_turns._tcp." <> Opts.baseDomain opts
+      interval = diffTimeToMicroseconds (fromMaybe defSrvDiscoveryIntervalSeconds (Opts.discoveryIntervalSeconds opts))
       runLoopAsync domain =
         Async.async
           . runM
@@ -337,8 +337,8 @@ turnURIFromIpAndPort ip port =
 
 startFileBasedTurnDiscovery :: Log.Logger -> FS.WatchManager -> Opts.TurnServersFiles -> TurnServersRef -> TurnServersRef -> IO ()
 startFileBasedTurnDiscovery l w files v1ServersRef v2ServersRef = do
-  v1FileCanonicalPath <- canonicalizePath (Opts.tsfServers files)
-  v2FileCanonicalPath <- canonicalizePath (Opts.tsfServersV2 files)
+  v1FileCanonicalPath <- canonicalizePath (Opts.servers files)
+  v2FileCanonicalPath <- canonicalizePath (Opts.serversV2 files)
   atomicWriteIORef v1ServersRef
     . maybe NotDiscoveredYet Discovered
     =<< readTurnList v1FileCanonicalPath

@@ -89,26 +89,26 @@ runTestFederator env = flip runReaderT env . unwrapTestFederator
 
 -- | See 'mkEnv' about what's in here.
 data TestEnv = TestEnv
-  { _teMgr :: Manager,
-    _teSSLContext :: SSLContext,
-    _teBrig :: BrigReq,
-    _teCargohold :: CargoholdReq,
+  { _mgr :: Manager,
+    _sslContext :: SSLContext,
+    _brig :: BrigReq,
+    _cargohold :: CargoholdReq,
     -- | federator config
-    _teOpts :: Opts,
+    _opts :: Opts,
     -- | integration test config
-    _teTstOpts :: IntegrationConfig,
+    _tstOpts :: IntegrationConfig,
     -- | Settings passed to the federator
-    _teSettings :: RunSettings
+    _settings :: RunSettings
   }
 
 type Select = TestEnv -> (Request -> Request)
 
 data IntegrationConfig = IntegrationConfig
-  { cfgBrig :: Endpoint,
-    cfgCargohold :: Endpoint,
-    cfgFederatorExternal :: Endpoint,
-    cfgNginxIngress :: Endpoint,
-    cfgOriginDomain :: Text
+  { brig :: Endpoint,
+    cargohold :: Endpoint,
+    federatorExternal :: Endpoint,
+    nginxIngress :: Endpoint,
+    originDomain :: Text
   }
   deriving (Show, Generic)
 

@@ -116,7 +116,7 @@ mkEnv lgr s3End s3AddrStyle s3Download bucket cfOpts mgr = do
   cf <- mkCfEnv cfOpts
   pure (Env g bucket e s3Download cf)
   where
-    mkCfEnv (Just o) = Just <$> initCloudFront (o ^. cfPrivateKey) (o ^. cfKeyPairId) 300 (o ^. cfDomain)
+    mkCfEnv (Just o) = Just <$> initCloudFront (o ^. privateKey) (o ^. keyPairId) 300 (o ^. domain)
     mkCfEnv Nothing = pure Nothing
     mkAwsEnv g s3 = do
       baseEnv <-

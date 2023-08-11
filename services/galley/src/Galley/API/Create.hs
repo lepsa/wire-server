@@ -276,7 +276,7 @@ checkCreateConvPermissions lusr newConv (Just tinfo) allUsers = do
   zusrMembership <- E.getTeamMember convTeam (tUnqualified lusr)
   void $ permissionCheck CreateConversation zusrMembership
   convLocalMemberships <- mapM (E.getTeamMember convTeam) (ulLocals allUsers)
-  ensureAccessRole (accessRoles newConv) (zip (ulLocals allUsers) convLocalMemberships)
+  ensureAccessRole (accessRolesNewConv newConv) (zip (ulLocals allUsers) convLocalMemberships)
   -- In teams we don't have 1:1 conversations, only regular conversations. We want
   -- users without the 'AddRemoveConvMember' permission to still be able to create
   -- regular conversations, therefore we check for 'AddRemoveConvMember' only if
@@ -315,7 +315,7 @@ createProteusSelfConversation lusr = do
     create lcnv = do
       let nc =
             NewConversation
-              { ncMetadata = (defConversationMetadata (tUnqualified lusr)) {cnvmType = SelfConv},
+              { ncMetadata = (defConversationMetadata (tUnqualified lusr)) {type' = SelfConv},
                 ncUsers = ulFromLocals [toUserRole (tUnqualified lusr)],
                 ncProtocol = ProtocolProteusTag
               }
@@ -405,9 +405,9 @@ createLegacyOne2OneConversationUnchecked self zcon name mtid other = do
   lcnv <- localOne2OneConvId self other
   let meta =
         (defConversationMetadata (tUnqualified self))
-          { cnvmType = One2OneConv,
-            cnvmTeam = mtid,
-            cnvmName = fmap fromRange name
+          { type' = One2OneConv,
+            team = mtid,
+            name = fmap fromRange name
           }
   let nc =
         NewConversation
@@ -474,9 +474,9 @@ createOne2OneConversationLocally lcnv self zcon name mtid other = do
     Nothing -> do
       let meta =
             (defConversationMetadata (tUnqualified self))
-              { cnvmType = One2OneConv,
-                cnvmTeam = mtid,
-                cnvmName = fmap fromRange name
+              { type' = One2OneConv,
+                team = mtid,
+                name = fmap fromRange name
               }
       let nc =
             NewConversation
@@ -529,8 +529,8 @@ createConnectConversation lusr conn j = do
   n <- rangeCheckedMaybe (cName j)
   let meta =
         (defConversationMetadata (tUnqualified lusr))
-          { cnvmType = ConnectConv,
-            cnvmName = fmap fromRange n
+          { type' = ConnectConv,
+            name = fmap fromRange n
           }
   lcnv <- localOne2OneConvId lusr lrecipient
   let nc =
@@ -628,14 +628,14 @@ newRegularConversation lusr newConv = do
         NewConversation
           { ncMetadata =
               ConversationMetadata
-                { cnvmType = RegularConv,
-                  cnvmCreator = tUnqualified lusr,
-                  cnvmAccess = access newConv,
-                  cnvmAccessRoles = accessRoles newConv,
-                  cnvmName = fmap fromRange (newConvName newConv),
-                  cnvmMessageTimer = newConvMessageTimer newConv,
-                  cnvmReceiptMode = newConvReceiptMode newConv,
-                  cnvmTeam = fmap cnvTeamId (newConvTeam newConv)
+                { type' = RegularConv,
+                  creator = tUnqualified lusr,
+                  access = accessNewConv newConv,
+                  accessRoles = accessRolesNewConv newConv,
+                  name = fmap fromRange (newConv.newConvName),
+                  messageTimer = newConv.newConvMessageTimer,
+                  receiptMode = newConv.newConvReceiptMode,
+                  team = fmap cnvTeamId (newConv.newConvTeam)
                 },
             ncUsers = ulAddLocal (toUserRole (tUnqualified lusr)) (fmap (,newConvUsersRole newConv) (fromConvSize users)),
             ncProtocol = newConvProtocol newConv
@@ -740,11 +740,11 @@ toUUIDs a b = do
   b' <- U.fromUUID (toUUID b) & note InvalidUUID4
   pure (a', b')
 
-accessRoles :: NewConv -> Set AccessRole
-accessRoles b = fromMaybe Data.defRole (newConvAccessRoles b)
+accessRolesNewConv :: NewConv -> Set AccessRole
+accessRolesNewConv b = fromMaybe Data.defRole (newConvAccessRoles b)
 
-access :: NewConv -> [Access]
-access a = case Set.toList (newConvAccess a) of
+accessNewConv :: NewConv -> [Access]
+accessNewConv a = case Set.toList (newConvAccess a) of
   [] -> Data.defRegularConvAccess
   (x : xs) -> x : xs
 

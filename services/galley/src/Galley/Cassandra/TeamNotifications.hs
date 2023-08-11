@@ -116,7 +116,7 @@ fetch tid since (fromRange -> size) = do
     collect acc num page =
       let ns = splitAt num $ foldr toNotif [] (result page)
           nseq = Seq.fromList (fst ns)
-          more = hasMore page
+          more = page.hasMore
           num' = num - Seq.length nseq
           acc' = acc >< nseq
        in if not more || num' == 0

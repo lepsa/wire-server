@@ -157,10 +157,10 @@ newConfig env discoveredServers sftStaticUrl mSftEnv limit listAllServers versio
   allSrvEntries <-
     fmap join $
       for mSftEnv $
-        (unSFTServers <$$>) . fmap discoveryToMaybe . readIORef . sftServers
+        (unSFTServers <$$>) . fmap discoveryToMaybe . readIORef . servers
   srvEntries <- fmap join $
     for mSftEnv $ \actualSftEnv -> liftIO $ do
-      let subsetLength = Calling.sftListLength actualSftEnv
+      let subsetLength = Calling.listLength actualSftEnv
       mapM (getRandomElements subsetLength) allSrvEntries
 
   mSftServersAll :: Maybe [SFTServer] <- case version of

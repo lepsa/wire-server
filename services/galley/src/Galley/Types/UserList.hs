@@ -31,8 +31,8 @@ import Imports
 
 -- | A list of users, partitioned into locals and remotes
 data UserList a = UserList
-  { ulLocals :: [a],
-    ulRemotes :: [Remote a]
+  { locals :: [a],
+    remotes :: [Remote a]
   }
   deriving (Functor, Foldable, Traversable)
 
@@ -47,10 +47,10 @@ toUserList :: Foldable f => Local x -> f (Qualified a) -> UserList a
 toUserList loc = uncurry UserList . partitionQualified loc
 
 ulAddLocal :: a -> UserList a -> UserList a
-ulAddLocal x ul = ul {ulLocals = x : ulLocals ul}
+ulAddLocal x ul = ul {locals = x : locals ul}
 
 ulAll :: Local x -> UserList a -> [Qualified a]
-ulAll loc ul = map (tUntagged . qualifyAs loc) (ulLocals ul) <> map tUntagged (ulRemotes ul)
+ulAll loc ul = map (tUntagged . qualifyAs loc) (locals ul) <> map tUntagged (remotes ul)
 
 ulFromLocals :: [a] -> UserList a
 ulFromLocals = flip UserList []

@@ -196,14 +196,14 @@ saveRemovalKey fp = do
   liftIO $ BS.writeFile fp (BA.convert pub)
 
 data MLSState = MLSState
-  { mlsBaseDir :: FilePath,
+  { baseDir :: FilePath,
     -- | for creating clients
-    mlsUnusedPrekeys :: [LastPrekey],
-    mlsMembers :: Set ClientIdentity,
+    unusedPrekeys :: [LastPrekey],
+    members :: Set ClientIdentity,
     -- | users expected to receive a welcome message after the next commit
-    mlsNewMembers :: Set ClientIdentity,
-    mlsGroupId :: Maybe GroupId,
-    mlsEpoch :: Word64
+    newMembers :: Set ClientIdentity,
+    groupId :: Maybe GroupId,
+    epoch :: Word64
   }
 
 newtype MLSTest a = MLSTest {unMLSTest :: StateT MLSState TestM a}
@@ -252,10 +252,10 @@ runMLSTest (MLSTest m) =
         }
 
 data MessagePackage = MessagePackage
-  { mpSender :: ClientIdentity,
-    mpMessage :: ByteString,
-    mpWelcome :: Maybe ByteString,
-    mpPublicGroupState :: Maybe ByteString
+  { sender :: ClientIdentity,
+    message :: ByteString,
+    welcome :: Maybe ByteString,
+    publicGroupState :: Maybe ByteString
   }
 
 takeLastPrekeyNG :: HasCallStack => MLSTest LastPrekey

@@ -37,12 +37,12 @@ assertNoError =
     Right x -> pure x
 
 data TestRequest = TestRequest
-  { trCertificateHeader :: Maybe ByteString,
-    trDomainHeader :: Maybe ByteString,
-    trPath :: ByteString,
-    trBody :: LByteString,
-    trMethod :: HTTP.Method,
-    trExtraHeaders :: [HTTP.Header]
+  { certificateHeader :: Maybe ByteString,
+    domainHeader :: Maybe ByteString,
+    path :: ByteString,
+    body :: LByteString,
+    method :: HTTP.Method,
+    extraHeaders :: [HTTP.Header]
   }
 
 instance Default TestRequest where

@@ -30,9 +30,9 @@ import System.Logger.Class (Logger)
 import System.Logger.Class qualified as Log
 
 data CassandraSettings = CassandraSettings
-  { cHost :: String,
-    cPort :: Word16,
-    cKeyspace :: C.Keyspace
+  { host :: String,
+    port :: Word16,
+    keyspace :: C.Keyspace
   }
 
 cassandraSettingsParser :: Parser CassandraSettings
@@ -72,9 +72,9 @@ mkEnv l cas =
     initCassandra =
       C.init
         $ C.setLogger (C.mkLogger l)
-          . C.setContacts (cHost cas) []
-          . C.setPortNumber (fromIntegral (cPort cas))
-          . C.setKeyspace (cKeyspace cas)
+          . C.setContacts (host cas) []
+          . C.setPortNumber (fromIntegral (port cas))
+          . C.setKeyspace (keyspace cas)
           . C.setProtocolVersion C.V4
         $ C.defSettings
     initLogger = pure l

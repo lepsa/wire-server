@@ -35,11 +35,11 @@ import Wire.API.Routes.Version
 -- | AWS CloudFront settings.
 data CloudFrontOpts = CloudFrontOpts
   { -- | Domain
-    _cfDomain :: CF.Domain,
+    _domain :: CF.Domain,
     -- | Keypair ID
-    _cfKeyPairId :: CF.KeyPairId,
+    _keyPairId :: CF.KeyPairId,
     -- | Path to private key
-    _cfPrivateKey :: FilePath
+    _privateKey :: FilePath
   }
   deriving (Show, Generic)
 
@@ -128,9 +128,9 @@ makeLenses ''AWSOpts
 
 data Settings = Settings
   { -- | Maximum allowed size for uploads, in bytes
-    _setMaxTotalBytes :: !Int,
+    _maxTotalBytes :: !Int,
     -- | TTL for download links, in seconds
-    _setDownloadLinkTTL :: !Word,
+    _downloadLinkTTL :: !Word,
     -- | FederationDomain is required, even when not wanting to federate with other backends
     -- (in that case the 'allowedDomains' can be set to empty in Federator)
     -- Federation domain is used to qualify local IDs and handles,
@@ -141,8 +141,8 @@ data Settings = Settings
     -- Remember to keep it the same in all services.
     -- This is referred to as the 'backend domain' in the public documentation; See
     -- https://docs.wire.com/how-to/install/configure-federation.html#choose-a-backend-domain-name
-    _setFederationDomain :: !Domain,
-    _setDisabledAPIVersions :: !(Maybe (Set Version))
+    _federationDomain :: !Domain,
+    _disabledAPIVersions :: !(Maybe (Set Version))
   }
   deriving (Show, Generic)
 
@@ -154,19 +154,19 @@ makeLenses ''Settings
 -- modify the behavior.
 data Opts = Opts
   { -- | Hostname and port to bind to
-    _optCargohold :: !Endpoint,
-    _optAws :: !AWSOpts,
-    _optSettings :: !Settings,
+    _cargohold :: !Endpoint,
+    _aws :: !AWSOpts,
+    _settings :: !Settings,
     -- | Federator endpoint
-    _optFederator :: Maybe Endpoint,
+    _federator :: Maybe Endpoint,
     -- Logging
 
     -- | Log level (Debug, Info, etc)
-    _optLogLevel :: !Level,
+    _logLevel :: !Level,
     -- | Use netstrings encoding:
     --   <http://cr.yp.to/proto/netstrings.txt>
-    _optLogNetStrings :: !(Maybe (Last Bool)),
-    _optLogFormat :: !(Maybe (Last LogFormat)) --- ^ Log format
+    _logNetStrings :: !(Maybe (Last Bool)),
+    _logFormat :: !(Maybe (Last LogFormat)) --- ^ Log format
   }
   deriving (Show, Generic)
 

@@ -60,8 +60,8 @@ sendMail m =
 
 -- | An 'EmailKey' is an 'Email' in a form that serves as a unique lookup key.
 data EmailKey = EmailKey
-  { emailKeyUniq :: !Text,
-    emailKeyOrig :: !Email
+  { uniq :: !Text,
+    orig :: !Email
   }
 
 instance Show EmailKey where

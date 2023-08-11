@@ -75,7 +75,7 @@ data Opts' a = Opts
 instance FromJSON (Opts' (Maybe ()))
 
 data DerivedOpts = DerivedOpts
-  { derivedOptsScimBaseURI :: !URI
+  { scimBaseURI :: !URI
   }
   deriving (Show, Generic)
 

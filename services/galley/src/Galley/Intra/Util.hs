@@ -32,7 +32,7 @@ import Data.ByteString.Lazy qualified as LB
 import Data.Misc (portNumber)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.Lazy qualified as LT
-import Galley.Env
+import Galley.Env (options)
 import Galley.Monad
 import Galley.Options
 import Imports hiding (log)
@@ -51,14 +51,14 @@ componentName Gundeck = "gundeck"
 
 componentRequest :: IntraComponent -> Opts -> Request -> Request
 componentRequest Brig o =
-  host (encodeUtf8 (o ^. optBrig . epHost))
-    . port (portNumber (fromIntegral (o ^. optBrig . epPort)))
+  host (encodeUtf8 (o ^. brig . epHost))
+    . port (portNumber (fromIntegral (o ^. brig . epPort)))
 componentRequest Spar o =
-  host (encodeUtf8 (o ^. optSpar . epHost))
-    . port (portNumber (fromIntegral (o ^. optSpar . epPort)))
+  host (encodeUtf8 (o ^. spar . epHost))
+    . port (portNumber (fromIntegral (o ^. spar . epPort)))
 componentRequest Gundeck o =
-  host (encodeUtf8 $ o ^. optGundeck . epHost)
-    . port (portNumber $ fromIntegral (o ^. optGundeck . epPort))
+  host (encodeUtf8 $ o ^. gundeck . epHost)
+    . port (portNumber $ fromIntegral (o ^. gundeck . epPort))
     . method POST
     . path "/i/push/v2"
     . expect2xx

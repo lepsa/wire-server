@@ -58,22 +58,22 @@ mkTime = posixSecondsToUTCTime . secondsToNominalDiffTime . MkFixed . (* 1000000
 userDoc1 :: UserDoc
 userDoc1 =
   UserDoc
-    { udId = Id . fromJust . fromText $ "0a96b396-57d6-11ea-a04b-7b93d1a5c19c",
-      udTeam = Just . Id . fromJust . fromText $ "17c59b18-57d6-11ea-9220-8bbf5eee961a",
-      udName = Just . Name $ "Carl Phoomp",
-      udNormalized = Just $ "carl phoomp",
-      udHandle = Just . fromJust . parseHandle $ "phoompy",
-      udEmail = Just $ Email "phoompy" "example.com",
-      udColourId = Just . ColourId $ 32,
-      udAccountStatus = Just Active,
-      udSAMLIdP = Just "https://issuer.net/214234",
-      udManagedBy = Just ManagedByScim,
-      udCreatedAt = Just (toUTCTimeMillis (mkTime 1598737800000)),
-      udRole = Just RoleAdmin,
-      udSearchVisibilityInbound = Nothing,
-      udScimExternalId = Nothing,
-      udSso = Nothing,
-      udEmailUnvalidated = Nothing
+    { id = Id . fromJust . fromText $ "0a96b396-57d6-11ea-a04b-7b93d1a5c19c",
+      team = Just . Id . fromJust . fromText $ "17c59b18-57d6-11ea-9220-8bbf5eee961a",
+      name = Just . Name $ "Carl Phoomp",
+      normalized = Just $ "carl phoomp",
+      handle = Just . fromJust . parseHandle $ "phoompy",
+      email = Just $ Email "phoompy" "example.com",
+      colourId = Just . ColourId $ 32,
+      accountStatus = Just Active,
+      samlIdP = Just "https://issuer.net/214234",
+      managedBy = Just ManagedByScim,
+      createdAt = Just (toUTCTimeMillis (mkTime 1598737800000)),
+      role = Just RoleAdmin,
+      searchVisibilityInbound = Nothing,
+      scimExternalId = Nothing,
+      sso = Nothing,
+      emailUnvalidated = Nothing
     }
 
 -- Dont touch this. This represents serialized legacy data.

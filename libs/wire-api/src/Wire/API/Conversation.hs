@@ -122,17 +122,17 @@ import Wire.Arbitrary
 -- Conversation
 
 data ConversationMetadata = ConversationMetadata
-  { cnvmType :: ConvType,
+  { type' :: ConvType,
     -- FUTUREWORK: Make this a qualified user ID.
-    cnvmCreator :: UserId,
-    cnvmAccess :: [Access],
-    cnvmAccessRoles :: Set AccessRole,
-    cnvmName :: Maybe Text,
+    creator :: UserId,
+    access :: [Access],
+    accessRoles :: Set AccessRole,
+    name :: Maybe Text,
     -- FUTUREWORK: Think if it makes sense to make the team ID qualified due to
     -- federation.
-    cnvmTeam :: Maybe TeamId,
-    cnvmMessageTimer :: Maybe Milliseconds,
-    cnvmReceiptMode :: Maybe ReceiptMode
+    team :: Maybe TeamId,
+    messageTimer :: Maybe Milliseconds,
+    receiptMode :: Maybe ReceiptMode
   }
   deriving stock (Eq, Show, Generic)
   deriving (Arbitrary) via (GenericUniform ConversationMetadata)
@@ -141,14 +141,14 @@ data ConversationMetadata = ConversationMetadata
 defConversationMetadata :: UserId -> ConversationMetadata
 defConversationMetadata creator =
   ConversationMetadata
-    { cnvmType = RegularConv,
-      cnvmCreator = creator,
-      cnvmAccess = [PrivateAccess],
-      cnvmAccessRoles = mempty,
-      cnvmName = Nothing,
-      cnvmTeam = Nothing,
-      cnvmMessageTimer = Nothing,
-      cnvmReceiptMode = Nothing
+    { type' = RegularConv,
+      creator = creator,
+      access = [PrivateAccess],
+      accessRoles = mempty,
+      name = Nothing,
+      team = Nothing,
+      messageTimer = Nothing,
+      receiptMode = Nothing
     }
 
 accessRolesVersionedSchema :: Version -> ObjectSchema SwaggerDoc (Set AccessRole)
@@ -189,25 +189,25 @@ conversationMetadataObjectSchema ::
   ObjectSchema SwaggerDoc ConversationMetadata
 conversationMetadataObjectSchema sch =
   ConversationMetadata
-    <$> cnvmType .= field "type" schema
-    <*> cnvmCreator
+    <$> type' .= field "type" schema
+    <*> creator
       .= fieldWithDocModifier
         "creator"
         (description ?~ "The creator's user ID")
         schema
-    <*> cnvmAccess .= field "access" (array schema)
-    <*> cnvmAccessRoles .= sch
-    <*> cnvmName .= optField "name" (maybeWithDefault A.Null schema)
+    <*> access .= field "access" (array schema)
+    <*> accessRoles .= sch
+    <*> name .= optField "name" (maybeWithDefault A.Null schema)
     <* const ("0.0" :: Text) .= optional (field "last_event" schema)
     <* const ("1970-01-01T00:00:00.000Z" :: Text)
       .= optional (field "last_event_time" schema)
-    <*> cnvmTeam .= optField "team" (maybeWithDefault A.Null schema)
-    <*> cnvmMessageTimer
+    <*> team .= optField "team" (maybeWithDefault A.Null schema)
+    <*> messageTimer
       .= optFieldWithDocModifier
         "message_timer"
         (description ?~ "Per-conversation message timer (can be null)")
         (maybeWithDefault A.Null schema)
-    <*> cnvmReceiptMode .= optField "receipt_mode" (maybeWithDefault A.Null schema)
+    <*> receiptMode .= optField "receipt_mode" (maybeWithDefault A.Null schema)
 
 instance ToSchema ConversationMetadata where
   schema = object "ConversationMetadata" (conversationMetadataObjectSchema accessRolesSchema)
@@ -238,28 +238,28 @@ data Conversation = Conversation
   deriving (FromJSON, ToJSON, S.ToSchema) via Schema Conversation
 
 cnvType :: Conversation -> ConvType
-cnvType = cnvmType . cnvMetadata
+cnvType = type' . cnvMetadata
 
 cnvCreator :: Conversation -> UserId
-cnvCreator = cnvmCreator . cnvMetadata
+cnvCreator = creator . cnvMetadata
 
 cnvAccess :: Conversation -> [Access]
-cnvAccess = cnvmAccess . cnvMetadata
+cnvAccess = access . cnvMetadata
 
 cnvAccessRoles :: Conversation -> Set AccessRole
-cnvAccessRoles = cnvmAccessRoles . cnvMetadata
+cnvAccessRoles = accessRoles . cnvMetadata
 
 cnvName :: Conversation -> Maybe Text
-cnvName = cnvmName . cnvMetadata
+cnvName = name . cnvMetadata
 
 cnvTeam :: Conversation -> Maybe TeamId
-cnvTeam = cnvmTeam . cnvMetadata
+cnvTeam = team . cnvMetadata
 
 cnvMessageTimer :: Conversation -> Maybe Milliseconds
-cnvMessageTimer = cnvmMessageTimer . cnvMetadata
+cnvMessageTimer = messageTimer . cnvMetadata
 
 cnvReceiptMode :: Conversation -> Maybe ReceiptMode
-cnvReceiptMode = cnvmReceiptMode . cnvMetadata
+cnvReceiptMode = receiptMode . cnvMetadata
 
 instance ToSchema Conversation where
   schema = conversationSchema V3

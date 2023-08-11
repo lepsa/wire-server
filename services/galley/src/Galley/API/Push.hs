@@ -30,23 +30,23 @@ module Galley.API.Push
 where
 
 import Control.Lens (set)
-import Data.Id
+import Data.Id (ClientId, ConnId, ConvId, UserId)
 import Data.List1 qualified as List1
 import Data.Map qualified as Map
-import Data.Qualified
-import Galley.Data.Services
-import Galley.Effects.ExternalAccess
-import Galley.Effects.GundeckAccess hiding (Push)
-import Galley.Intra.Push
-import Galley.Intra.Push.Internal hiding (push)
-import Gundeck.Types.Push (RecipientClients (RecipientClientsSome))
+import Data.Qualified (Local, Qualified (qUnqualified), qDomain, tDomain)
+import Galley.Data.Services (BotMember)
+import Galley.Effects.ExternalAccess (ExternalAccess, deliverAndDeleteAsync)
+import Galley.Effects.GundeckAccess (GundeckAccess, push)
+import Galley.Intra.Push.Internal (Push, PushEvent (..), Recipient, RecipientBy (..), newPush)
+import Galley.Intra.Push.Internal qualified as I
+import Gundeck.Types.Push (RecipientClients (RecipientClientsSome), Route (..))
 import Imports
-import Polysemy
-import Polysemy.TinyLog
+import Polysemy (Member, Sem)
+import Polysemy.TinyLog (TinyLog, warn)
 import System.Logger.Class qualified as Log
-import Wire.API.Event.Conversation
-import Wire.API.Message
-import Wire.API.Team.Member
+import Wire.API.Event.Conversation (Event, evtFrom)
+import Wire.API.Message (MessageMetadata (nativePriority, nativePush, transient))
+import Wire.API.Team.Member (ListType (..))
 
 data MessagePush
   = MessagePush (Maybe ConnId) MessageMetadata [Recipient] [BotMember] Event
@@ -93,7 +93,7 @@ toPush :: MessagePush -> Maybe Push
 toPush (MessagePush mconn mm userRecipients _ event) =
   let usr = qUnqualified (evtFrom event)
    in newPush ListComplete (Just usr) (ConvEvent event) userRecipients
-        <&> set pushConn mconn
-          . set pushNativePriority (mmNativePriority mm)
-          . set pushRoute (bool RouteDirect RouteAny (mmNativePush mm))
-          . set pushTransient (mmTransient mm)
+        <&> set I.conn mconn
+          . set I.nativePriority mm.nativePriority
+          . set I.route (bool RouteDirect RouteAny mm.nativePush)
+          . set I.transient mm.transient

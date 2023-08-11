@@ -218,9 +218,9 @@ pushAll pushes = do
 
 -- | A new notification to be stored in C* and pushed over websockets
 data NewNotification = NewNotification
-  { nnPush :: Push,
-    nnNotification :: Notification,
-    nnRecipients :: List1 Recipient
+  { push :: Push,
+    notification :: Notification,
+    recipients :: List1 Recipient
   }
 
 mkNewNotification :: forall m. MonadPushAll m => Push -> m NewNotification
@@ -241,8 +241,8 @@ mkNewNotification psh = NewNotification psh <$> mkNotif <*> rcps
 
 -- | Information to be stored in cassandra for every 'Notification'.
 data CassandraTargets = CassandraTargets
-  { ctNotification :: Notification,
-    ctNotificationTargets :: List1 NotificationTarget
+  { notification :: Notification,
+    notificationTargets :: List1 NotificationTarget
   }
 
 mkCassandraTargets :: NewNotification -> CassandraTargets
@@ -261,9 +261,9 @@ mkCassandraTargets NewNotification {..} =
 -- | Information needed to push notifications over websockets and/or native
 -- pushes.
 data WSTargets = WSTargets
-  { wstPush :: Push,
-    wstNotification :: Notification,
-    wstPresences :: List1 (Recipient, [Presence])
+  { push :: Push,
+    notification :: Notification,
+    presences :: List1 (Recipient, [Presence])
   }
 
 mkWSTargets :: MonadPushAll m => NewNotification -> m WSTargets

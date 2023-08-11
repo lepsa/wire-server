@@ -390,12 +390,12 @@ listServiceProfiles p =
 -- Service Connection Data
 
 data ServiceConn = ServiceConn
-  { sconProvider :: !ProviderId,
-    sconService :: !ServiceId,
-    sconBaseUrl :: !HttpsUrl,
-    sconAuthTokens :: !(List1 ServiceToken),
-    sconFingerprints :: !(List1 (Fingerprint Rsa)),
-    sconEnabled :: !Bool
+  { provider :: !ProviderId,
+    service :: !ServiceId,
+    baseUrl :: !HttpsUrl,
+    authTokens :: !(List1 ServiceToken),
+    fingerprints :: !(List1 (Fingerprint Rsa)),
+    enabled :: !Bool
   }
 
 -- | Lookup the connection information of a service.

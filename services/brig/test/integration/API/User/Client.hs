@@ -227,8 +227,8 @@ testAddGetClientCodeExpired db opts brig galley = do
 -- @END
 
 data AddGetClient = AddGetClient
-  { addWithPassword :: Bool,
-    addWithMLSKeys :: Bool
+  { password :: Bool,
+    mlsKeys :: Bool
   }
 
 instance Default AddGetClient where
@@ -1390,10 +1390,10 @@ testNewNonce brig = do
 
 data DPoPClaimsSet = DPoPClaimsSet
   { jwtClaims :: ClaimsSet,
-    claimNonce :: Text,
-    claimHtm :: Text,
-    claimHtu :: Text,
-    claimChal :: Text
+    nonce :: Text,
+    htm :: Text,
+    htu :: Text,
+    chal :: Text
   }
   deriving (Eq, Show, Generic)
 
@@ -1411,10 +1411,10 @@ instance A.FromJSON DPoPClaimsSet where
 
 instance A.ToJSON DPoPClaimsSet where
   toJSON s =
-    ins "nonce" (claimNonce s) (A.toJSON (jwtClaims s))
-      & ins "htm" (claimHtm s)
-      & ins "htu" (claimHtu s)
-      & ins "chal" (claimChal s)
+    ins "nonce" s.nonce (A.toJSON (jwtClaims s))
+      & ins "htm" s.htm
+      & ins "htu" s.htu
+      & ins "chal" s.chal
     where
       ins k v (Object o) = Object $ M.insert k (A.toJSON v) o
       ins _ _ a = a

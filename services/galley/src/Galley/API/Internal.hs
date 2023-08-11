@@ -591,7 +591,7 @@ deleteFederationDomainRemoteUserFromLocalConversations dom = do
           -- If it is, then we need to remove the entire conversation as users
           -- aren't able to delete those types of conversations themselves.
           -- Check that we are in a type 2 or a type 3 conversation
-        when (cnvmType (convMetadata conv) `elem` [One2OneConv, ConnectConv]) $
+        when (type' (convMetadata conv) `elem` [One2OneConv, ConnectConv]) $
           -- If we are, delete it.
           updateLocalConversationUserUnchecked
             @'ConversationDeleteTag

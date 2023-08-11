@@ -118,13 +118,13 @@ data BackendReachability = BackendReachable | BackendUnreachable
   deriving (Eq, Ord)
 
 data Backend = Backend
-  { bReachable :: BackendReachability,
-    bUsers :: Nat
+  { reachable :: BackendReachability,
+    users :: Nat
   }
   deriving (Eq, Ord)
 
 rbReachable :: Remote Backend -> BackendReachability
-rbReachable = bReachable . tUnqualified
+rbReachable = reachable . tUnqualified
 
 participating :: Remote Backend -> [a] -> [a]
 participating rb users =

@@ -40,14 +40,14 @@ testObject_Conversation_user_1 =
     { cnvQualifiedId = Qualified (Id (fromJust (UUID.fromString "00000001-0000-0000-0000-000000000000"))) domain,
       cnvMetadata =
         ConversationMetadata
-          { cnvmType = One2OneConv,
-            cnvmCreator = Id (fromJust (UUID.fromString "00000001-0000-0001-0000-000200000001")),
-            cnvmAccess = [],
-            cnvmAccessRoles = Set.empty,
-            cnvmName = Just " 0",
-            cnvmTeam = Just (Id (fromJust (UUID.fromString "00000001-0000-0001-0000-000100000002"))),
-            cnvmMessageTimer = Nothing,
-            cnvmReceiptMode = Just (ReceiptMode {unReceiptMode = -2})
+          { type' = One2OneConv,
+            creator = Id (fromJust (UUID.fromString "00000001-0000-0001-0000-000200000001")),
+            access = [],
+            accessRoles = Set.empty,
+            name = Just " 0",
+            team = Just (Id (fromJust (UUID.fromString "00000001-0000-0001-0000-000100000002"))),
+            messageTimer = Nothing,
+            receiptMode = Just (ReceiptMode {unReceiptMode = -2})
           },
       cnvProtocol = ProtocolProteus,
       cnvMembers =
@@ -74,9 +74,9 @@ testObject_Conversation_user_2 =
     { cnvQualifiedId = Qualified (Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000000000002"))) domain,
       cnvMetadata =
         ConversationMetadata
-          { cnvmType = SelfConv,
-            cnvmCreator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000200000001")),
-            cnvmAccess =
+          { type' = SelfConv,
+            creator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000200000001")),
+            access =
               [ InviteAccess,
                 InviteAccess,
                 CodeAccess,
@@ -90,11 +90,11 @@ testObject_Conversation_user_2 =
                 PrivateAccess,
                 InviteAccess
               ],
-            cnvmAccessRoles = Set.fromList [TeamMemberAccessRole, GuestAccessRole, ServiceAccessRole],
-            cnvmName = Just "",
-            cnvmTeam = Nothing,
-            cnvmMessageTimer = Just (Ms {ms = 1319272593797015}),
-            cnvmReceiptMode = Nothing
+            accessRoles = Set.fromList [TeamMemberAccessRole, GuestAccessRole, ServiceAccessRole],
+            name = Just "",
+            team = Nothing,
+            messageTimer = Just (Ms {ms = 1319272593797015}),
+            receiptMode = Nothing
           },
       cnvProtocol = ProtocolProteus,
       cnvMembers =

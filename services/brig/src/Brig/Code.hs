@@ -83,13 +83,13 @@ import Wire.API.User.Identity
 -- Code
 
 data Code = Code
-  { codeKey :: !Key,
-    codeScope :: !Scope,
-    codeValue :: !Value,
-    codeRetries :: !Retries,
-    codeTTL :: !Timeout,
-    codeFor :: !CodeFor,
-    codeAccount :: !(Maybe UUID)
+  { key :: !Key,
+    scope :: !Scope,
+    value :: !Value,
+    retries :: !Retries,
+    ttl :: !Timeout,
+    for :: !CodeFor,
+    account :: !(Maybe UUID)
   }
   deriving (Eq, Show)
 
@@ -162,9 +162,9 @@ instance Cql Retries where
 -- different contexts for the same email address or phone number.
 -- TODO: newtype KeyContext = KeyContext ByteString
 data Gen = Gen
-  { genFor :: !CodeFor,
-    genKey :: !Key, -- Note [Unique keys]
-    genValue :: IO Value
+  { for :: !CodeFor,
+    key :: !Key, -- Note [Unique keys]
+    value :: IO Value
   }
 
 mkKey :: MonadIO m => CodeFor -> m Key

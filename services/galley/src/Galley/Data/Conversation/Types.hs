@@ -29,23 +29,23 @@ import Wire.API.Conversation.Role
 -- Should never be sent to users (and therefore doesn't have 'FromJSON' or
 -- 'ToJSON' instances).
 data Conversation = Conversation
-  { convId :: ConvId,
-    convLocalMembers :: [LocalMember],
-    convRemoteMembers :: [RemoteMember],
-    convDeleted :: Bool,
-    convMetadata :: ConversationMetadata,
-    convProtocol :: Protocol
+  { id :: ConvId,
+    localMembers :: [LocalMember],
+    remoteMembers :: [RemoteMember],
+    deleted :: Bool,
+    metadata :: ConversationMetadata,
+    protocol :: Protocol
   }
   deriving (Show)
 
 data NewConversation = NewConversation
-  { ncMetadata :: ConversationMetadata,
-    ncUsers :: UserList (UserId, RoleName),
-    ncProtocol :: ProtocolTag
+  { metadata :: ConversationMetadata,
+    users :: UserList (UserId, RoleName),
+    protocol :: ProtocolTag
   }
 
 mlsMetadata :: Conversation -> Maybe ConversationMLSData
 mlsMetadata conv =
-  case convProtocol conv of
+  case conv.protocol of
     ProtocolProteus -> Nothing
     ProtocolMLS meta -> pure meta

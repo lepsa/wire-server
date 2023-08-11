@@ -206,10 +206,10 @@ bulkSend' uri bulkPushRequest = do
 -- delivered while others aren't.
 data FlowBack = FlowBack
   { -- | list of cannons that failed to respond with status 200
-    flowBackBadCannons :: [(URI, SomeException)],
+    badCannons :: [(URI, SomeException)],
     -- | 401 inside the body (for one presence)
-    flowBackLostPrcs :: [PushTarget],
-    flowBackDelivered :: [(NotificationId, PushTarget)]
+    lostPrcs :: [PushTarget],
+    delivered :: [(NotificationId, PushTarget)]
   }
 
 flowBack :: [(URI, Either SomeException BulkPushResponse)] -> FlowBack

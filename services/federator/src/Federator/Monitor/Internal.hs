@@ -47,12 +47,12 @@ import Wire.Arbitrary
 import Wire.Sem.Logger.TinyLog qualified as Log
 
 data Monitor = Monitor
-  { monINotify :: INotify,
-    monOnNewContext :: SSLContext -> IO (),
-    monWatches :: IORef Watches,
-    monSettings :: RunSettings,
-    monHandler :: WatchedPath -> Event -> IO (),
-    monLock :: MVar ()
+  { iNotify :: INotify,
+    onNewContext :: SSLContext -> IO (),
+    watches :: IORef Watches,
+    settings :: RunSettings,
+    handler :: WatchedPath -> Event -> IO (),
+    lock :: MVar ()
   }
 
 -- This is needed because the normal Posix file system API uses strings, while

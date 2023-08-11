@@ -73,12 +73,12 @@ import Wire.API.Routes.Version
 import Wire.Sem.Paging.Cassandra (InternalPaging)
 
 data BackendConf = BackendConf
-  { remoteBrig :: Endpoint,
-    remoteGalley :: Endpoint,
-    remoteCargohold :: Endpoint,
-    remoteCannon :: Endpoint,
-    remoteFederatorInternal :: Endpoint,
-    remoteFederatorExternal :: Endpoint
+  { brig :: Endpoint,
+    galley :: Endpoint,
+    cargohold :: Endpoint,
+    cannon :: Endpoint,
+    federatorInternal :: Endpoint,
+    federatorExternal :: Endpoint
   }
   deriving (Show, Generic)
 

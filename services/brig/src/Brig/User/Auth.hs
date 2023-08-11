@@ -376,7 +376,7 @@ isPendingActivation ident = case ident of
         Just u -> maybe False (checkAccount k) <$> Data.lookupAccount u
     checkAccount k a =
       let i = userIdentity (accountUser a)
-          statusAdmitsPending = case accountStatus a of
+          statusAdmitsPending = case a.accountStatus of
             Active -> True
             Suspended -> False
             Deleted -> False

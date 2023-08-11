@@ -47,7 +47,7 @@ import Galley.Types.Teams
 import Imports
 import Polysemy
 import Polysemy.Input
-import Wire.API.Conversation (cnvmTeam)
+import Wire.API.Conversation (team)
 import Wire.API.Error (ErrorS, throwS)
 import Wire.API.Error.Galley
 import Wire.API.Routes.Internal.Galley.TeamFeatureNoConfigMulti qualified as Multi
@@ -503,7 +503,7 @@ guardSecondFactorDisabled ::
   Sem r a
 guardSecondFactorDisabled uid cid action = do
   mbCnvData <- ConversationStore.getConversationMetadata cid
-  tf <- case mbCnvData >>= cnvmTeam of
+  tf <- case mbCnvData >>= team of
     Nothing -> getConfigForUser @SndFactorPasswordChallengeConfig uid
     Just tid -> do
       teamExists <- isJust <$> getTeam tid

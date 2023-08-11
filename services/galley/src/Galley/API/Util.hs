@@ -417,9 +417,9 @@ class IsBotOrMember uid where
   bmAdd :: Local x -> uid -> BotsAndMembers -> BotsAndMembers
 
 data BotsAndMembers = BotsAndMembers
-  { bmLocals :: Set UserId,
-    bmRemotes :: Set (Remote UserId),
-    bmBots :: Set BotMember
+  { locals :: Set UserId,
+    remotes :: Set (Remote UserId),
+    bots :: Set BotMember
   }
   deriving (Show)
 
@@ -675,17 +675,17 @@ toConversationCreated ::
 toConversationCreated now Data.Conversation {convMetadata = ConversationMetadata {..}, ..} = do
   ConversationCreated
     { ccTime = now,
-      ccOrigUserId = cnvmCreator,
+      ccOrigUserId = creator,
       ccCnvId = convId,
-      ccCnvType = cnvmType,
-      ccCnvAccess = cnvmAccess,
-      ccCnvAccessRoles = cnvmAccessRoles,
-      ccCnvName = cnvmName,
+      ccCnvType = type',
+      ccCnvAccess = access,
+      ccCnvAccessRoles = accessRoles,
+      ccCnvName = name,
       -- non-creator members are a function of the remote backend and will be
       -- overridden when fanning out the notification to remote backends.
       ccNonCreatorMembers = Set.empty,
-      ccMessageTimer = cnvmMessageTimer,
-      ccReceiptMode = cnvmReceiptMode,
+      ccMessageTimer = messageTimer,
+      ccReceiptMode = receiptMode,
       ccProtocol = convProtocol
     }
 
@@ -735,18 +735,18 @@ fromConversationCreated loc rc@ConversationCreated {..} =
       Public.Conversation
         (tUntagged ccCnvId)
         ConversationMetadata
-          { cnvmType = ccCnvType,
+          { type' = ccCnvType,
             -- FUTUREWORK: Document this is the same domain as the conversation
             -- domain
-            cnvmCreator = ccOrigUserId,
-            cnvmAccess = ccCnvAccess,
-            cnvmAccessRoles = ccCnvAccessRoles,
-            cnvmName = ccCnvName,
+            creator = ccOrigUserId,
+            access = ccCnvAccess,
+            accessRoles = ccCnvAccessRoles,
+            name = ccCnvName,
             -- FUTUREWORK: Document this is the same domain as the conversation
             -- domain.
-            cnvmTeam = Nothing,
-            cnvmMessageTimer = ccMessageTimer,
-            cnvmReceiptMode = ccReceiptMode
+            team = Nothing,
+            messageTimer = ccMessageTimer,
+            receiptMode = ccReceiptMode
           }
         (ConvMembers this others)
         ProtocolProteus
@@ -823,13 +823,13 @@ registerRemoteConversationMemberships now lc = do
       . UnreachableBackendsError
       $ failedToUpdate
   where
-    creator :: UserId
-    creator = cnvmCreator . DataTypes.convMetadata . tUnqualified $ lc
+    creator' :: UserId
+    creator' = creator . DataTypes.convMetadata . tUnqualified $ lc
 
     localNonCreators :: [OtherMember]
     localNonCreators =
       fmap (localMemberToOther . tDomain $ lc)
-        . filter (\lm -> lmId lm /= creator)
+        . filter (\lm -> lmId lm /= creator')
         . Data.convLocalMembers
         . tUnqualified
         $ lc
@@ -842,7 +842,7 @@ registerRemoteConversationMemberships now lc = do
     convUpdateJoin (toNotify, newMembers) =
       ConversationUpdate
         { cuTime = now,
-          cuOrigUserId = tUntagged . qualifyAs lc $ creator,
+          cuOrigUserId = tUntagged . qualifyAs lc $ creator',
           cuConvId = DataTypes.convId . tUnqualified $ lc,
           cuAlreadyPresentUsers = fmap (tUnqualified . rmId) . tUnqualified $ toNotify,
           cuAction =

@@ -9,8 +9,8 @@ import Polysemy
 import Wire.Sem.Paging
 
 data UserPendingActivation = UserPendingActivation
-  { upaUserId :: !UserId,
-    upaDay :: !UTCTime
+  { userId :: !UserId,
+    day :: !UTCTime
   }
   deriving stock (Eq, Show, Ord)
 

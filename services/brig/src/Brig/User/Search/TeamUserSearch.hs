@@ -126,7 +126,7 @@ teamUserSearchQuery tid mbSearchText _mRoleFilter mSortBy mSortOrder =
       case mbSearchText of
         Nothing -> Nothing
         Just q ->
-          case normalized q of
+          case normalizedText q of
             "" -> Nothing
             term' -> Just term'
 

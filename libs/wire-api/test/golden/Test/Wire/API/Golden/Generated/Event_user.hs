@@ -147,15 +147,15 @@ testObject_Event_user_8 =
             { cnvQualifiedId = Qualified (Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000100000001"))) (Domain "golden.example.com"),
               cnvMetadata =
                 ConversationMetadata
-                  { cnvmType = RegularConv,
-                    cnvmCreator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000200000001")),
-                    cnvmAccess =
+                  { type' = RegularConv,
+                    creator = Id (fromJust (UUID.fromString "00000000-0000-0000-0000-000200000001")),
+                    access =
                       [InviteAccess, PrivateAccess, LinkAccess, InviteAccess, InviteAccess, InviteAccess, LinkAccess],
-                    cnvmAccessRoles = Set.fromList [TeamMemberAccessRole, GuestAccessRole, ServiceAccessRole],
-                    cnvmName = Just "\a\SO\r",
-                    cnvmTeam = Just (Id (fromJust (UUID.fromString "00000000-0000-0002-0000-000100000001"))),
-                    cnvmMessageTimer = Just (Ms {ms = 283898987885780}),
-                    cnvmReceiptMode = Just (ReceiptMode {unReceiptMode = -1})
+                    accessRoles = Set.fromList [TeamMemberAccessRole, GuestAccessRole, ServiceAccessRole],
+                    name = Just "\a\SO\r",
+                    team = Just (Id (fromJust (UUID.fromString "00000000-0000-0002-0000-000100000001"))),
+                    messageTimer = Just (Ms {ms = 283898987885780}),
+                    receiptMode = Just (ReceiptMode {unReceiptMode = -1})
                   },
               cnvProtocol = ProtocolProteus,
               cnvMembers =

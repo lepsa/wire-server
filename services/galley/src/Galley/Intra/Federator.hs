@@ -24,7 +24,7 @@ import Data.Qualified
 import Galley.Effects.FederatorAccess (FederatorAccess (..))
 import Galley.Env
 import Galley.Monad
-import Galley.Options
+import Galley.Options (federationDomain, settings)
 import Imports
 import Polysemy
 import Polysemy.Input
@@ -55,7 +55,7 @@ runFederatedEither ::
   FederatorClient c a ->
   App (Either FederationError a)
 runFederatedEither (tDomain -> remoteDomain) rpc = do
-  ownDomain <- view (options . optSettings . setFederationDomain)
+  ownDomain <- view (options . settings . federationDomain)
   mfedEndpoint <- view federator
   mgr <- view http2Manager
   case mfedEndpoint of

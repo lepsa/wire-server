@@ -27,10 +27,10 @@ import Wire.API.User.Password
 -- | Parameters used in password reset queries. The f type constructor is used
 -- either as 'Identity' or 'Maybe'.
 data PRQueryData f = PRQueryData
-  { prqdCode :: PasswordResetCode,
-    prqdUser :: UserId,
-    prqdRetries :: f Int32,
-    prqdTimeout :: f UTCTime
+  { code :: PasswordResetCode,
+    user :: UserId,
+    retries :: f Int32,
+    timeout :: f UTCTime
   }
 
 data CodeStore m a where

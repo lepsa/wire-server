@@ -73,15 +73,15 @@ newtype CannonR = CannonR {runCannonR :: Request -> Request}
 newtype GundeckR = GundeckR {runGundeckR :: Request -> Request}
 
 data TestSetup = TestSetup
-  { _tsManager :: Manager,
-    _tsGundeck :: GundeckR,
-    _tsCannon :: CannonR,
-    _tsCannon2 :: CannonR,
-    _tsBrig :: BrigR,
-    _tsCass :: Cql.ClientState,
-    _tsLogger :: Log.Logger,
-    _tsOpts :: Gundeck.Opts,
-    _tsRedis2 :: RedisEndpoint
+  { _manager :: Manager,
+    _gundeck :: GundeckR,
+    _cannon :: CannonR,
+    _cannon2 :: CannonR,
+    _brig :: BrigR,
+    _cass :: Cql.ClientState,
+    _logger :: Log.Logger,
+    _opts :: Gundeck.Opts,
+    _redis2 :: RedisEndpoint
   }
 
 makeLenses ''TestSetup

@@ -35,30 +35,30 @@ import Imports
 import Wire.API.User.Identity
 
 data InvitationEmailTemplate = InvitationEmailTemplate
-  { invitationEmailUrl :: !Template,
-    invitationEmailSubject :: !Template,
-    invitationEmailBodyText :: !Template,
-    invitationEmailBodyHtml :: !Template,
-    invitationEmailSender :: !Email,
-    invitationEmailSenderName :: !Text
+  { url :: !Template,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data CreatorWelcomeEmailTemplate = CreatorWelcomeEmailTemplate
-  { creatorWelcomeEmailUrl :: !Text,
-    creatorWelcomeEmailSubject :: !Template,
-    creatorWelcomeEmailBodyText :: !Template,
-    creatorWelcomeEmailBodyHtml :: !Template,
-    creatorWelcomeEmailSender :: !Email,
-    creatorWelcomeEmailSenderName :: !Text
+  { url :: !Text,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data MemberWelcomeEmailTemplate = MemberWelcomeEmailTemplate
-  { memberWelcomeEmailUrl :: !Text,
-    memberWelcomeEmailSubject :: !Template,
-    memberWelcomeEmailBodyText :: !Template,
-    memberWelcomeEmailBodyHtml :: !Template,
-    memberWelcomeEmailSender :: !Email,
-    memberWelcomeEmailSenderName :: !Text
+  { url :: !Text,
+    subject :: !Template,
+    bodyText :: !Template,
+    bodyHtml :: !Template,
+    sender :: !Email,
+    senderName :: !Text
   }
 
 data TeamTemplates = TeamTemplates
@@ -77,14 +77,14 @@ loadTeamTemplates o = readLocalesDir defLocale (templateDir gOptions) "team" $ \
             <*> pure (emailSender gOptions)
             <*> readText fp "email/sender.txt"
         )
-    <*> ( CreatorWelcomeEmailTemplate (tCreatorWelcomeUrl tOptions)
+    <*> ( CreatorWelcomeEmailTemplate (creatorWelcomeUrl tOptions)
             <$> readTemplate fp "email/new-creator-welcome-subject.txt"
             <*> readTemplate fp "email/new-creator-welcome.txt"
             <*> readTemplate fp "email/new-creator-welcome.html"
             <*> pure (emailSender gOptions)
             <*> readText fp "email/sender.txt"
         )
-    <*> ( MemberWelcomeEmailTemplate (tMemberWelcomeUrl tOptions)
+    <*> ( MemberWelcomeEmailTemplate (memberWelcomeUrl tOptions)
             <$> readTemplate fp "email/new-member-welcome-subject.txt"
             <*> readTemplate fp "email/new-member-welcome.txt"
             <*> readTemplate fp "email/new-member-welcome.html"
@@ -94,7 +94,7 @@ loadTeamTemplates o = readLocalesDir defLocale (templateDir gOptions) "team" $ \
   where
     gOptions = general (emailSMS o)
     tOptions = team (emailSMS o)
-    tUrl = template $ tInvitationUrl tOptions
+    tUrl = template $ invitationUrl tOptions
     defLocale = setDefaultTemplateLocale (optSettings o)
     readTemplate = readTemplateWithDefault (templateDir gOptions) defLocale "team"
     readText = readTextWithDefault (templateDir gOptions) defLocale "team"

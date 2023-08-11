@@ -115,8 +115,8 @@ validateCredential identity cred = do
         "Failed to parse identity: " <> e
 
 data RequiredExtensions f = RequiredExtensions
-  { reLifetime :: f Lifetime,
-    reCapabilities :: f ()
+  { lifetime :: f Lifetime,
+    capabilities :: f ()
   }
 
 deriving instance (Show (f Lifetime), Show (f ())) => Show (RequiredExtensions f)

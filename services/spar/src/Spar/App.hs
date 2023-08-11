@@ -101,13 +101,13 @@ throwSparSem :: Member (Error SparError) r => SparCustomError -> Sem r a
 throwSparSem = throw . SAML.CustomError
 
 data Env = Env
-  { sparCtxOpts :: Opts,
-    sparCtxLogger :: TinyLog.Logger,
-    sparCtxCas :: Cas.ClientState,
-    sparCtxHttpManager :: Bilge.Manager,
-    sparCtxHttpBrig :: Bilge.Request,
-    sparCtxHttpGalley :: Bilge.Request,
-    sparCtxRequestId :: RequestId
+  { opts :: Opts,
+    logger :: TinyLog.Logger,
+    cas :: Cas.ClientState,
+    httpManager :: Bilge.Manager,
+    httpBrig :: Bilge.Request,
+    httpGalley :: Bilge.Request,
+    requestId :: RequestId
   }
 
 -- | Get a user by UserRef, no matter what the team.

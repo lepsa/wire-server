@@ -1150,7 +1150,7 @@ buildPush sdr rcps pload =
 appName :: AppName
 appName = AppName "test"
 
-data TokenSpec = TokenSpec {trans :: Transport, tSize :: Int, tName :: AppName}
+data TokenSpec = TokenSpec {trans :: Transport, size :: Int, name :: AppName}
 
 gcmToken :: TokenSpec
 gcmToken = TokenSpec GCM 16 appName

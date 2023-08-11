@@ -92,11 +92,11 @@ unreachableMsg (LText.fromStrict . domainText -> d) =
 instance Exception MockException
 
 data FederatedRequest = FederatedRequest
-  { frOriginDomain :: Domain,
-    frTargetDomain :: Domain,
-    frComponent :: Component,
-    frRPC :: Text,
-    frBody :: LByteString
+  { originDomain :: Domain,
+    targetDomain :: Domain,
+    component :: Component,
+    rpc :: Text,
+    body :: LByteString
   }
   deriving (Eq, Show)
 
@@ -139,11 +139,11 @@ mockInternalRequest remoteCalls headers resp targetDomain component (RPC path) r
   reqBody <- embed $ Wai.lazyRequestBody req
   let fedRequest =
         ( FederatedRequest
-            { frOriginDomain = originDomain,
-              frTargetDomain = targetDomain,
-              frComponent = component,
-              frRPC = path,
-              frBody = reqBody
+            { originDomain = originDomain,
+              targetDomain = targetDomain,
+              component = component,
+              rpc = path,
+              body = reqBody
             }
         )
   (ct, resBody) <-
@@ -209,7 +209,7 @@ newtype Mock a = Mock {unMock :: ReaderT FederatedRequest (MaybeT (ExceptT Text 
 runMock :: (Text -> IO a) -> Mock a -> FederatedRequest -> IO a
 runMock err m req =
   runExceptT (runMaybeT (runReaderT (unMock m) req)) >>= \case
-    Right Nothing -> err ("unmocked endpoint called: " <> frRPC req)
+    Right Nothing -> err ("unmocked endpoint called: " <> rpc req)
     Right (Just x) -> pure x
     Left e -> err e
 
@@ -219,12 +219,12 @@ getRequest = Mock $ ReaderT pure
 
 -- | Retrieve the RPC of the current request.
 getRequestRPC :: Mock Text
-getRequestRPC = frRPC <$> getRequest
+getRequestRPC = rpc <$> getRequest
 
 -- | Retrieve and deserialise the body of the current request.
 getRequestBody :: Aeson.FromJSON a => Mock a
 getRequestBody = do
-  b <- frBody <$> getRequest
+  b <- body <$> getRequest
   case Aeson.eitherDecode b of
     Left e -> do
       rpc <- getRequestRPC
@@ -241,7 +241,7 @@ guardRPC rpc = do
 
 guardComponent :: Component -> Mock ()
 guardComponent c = do
-  c' <- frComponent <$> getRequest
+  c' <- component <$> getRequest
   guard (c == c')
 
 -- | Serialise and return a response.
@@ -251,7 +251,7 @@ mockReply = pure . Aeson.encode
 -- | Provide a mock reply simulating an unreachable backend.
 mockUnreachableFor :: Set Domain -> Mock LByteString
 mockUnreachableFor backends = do
-  target <- frTargetDomain <$> getRequest
+  target <- targetDomain <$> getRequest
   guard (target `elem` backends)
   throw (MockUnreachableBackendErrorResponse target)
 

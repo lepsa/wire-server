@@ -82,10 +82,10 @@ exampleRequest certFile path = do
       }
 
 data Call = Call
-  { cComponent :: Component,
-    cPath :: ByteString,
-    cBody :: LByteString,
-    cDomain :: Domain
+  { component :: Component,
+    path :: ByteString,
+    body :: LByteString,
+    domain :: Domain
   }
   deriving (Eq, Show)
 

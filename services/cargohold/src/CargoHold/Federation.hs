@@ -56,8 +56,8 @@ downloadRemoteAsset ::
 downloadRemoteAsset usr rkey tok = do
   let ga =
         GetAsset
-          { gaKey = tUnqualified rkey,
-            gaUser = tUnqualified usr,
+          { gaKey = rkey.unqualified,
+            gaUser = usr.unqualified,
             gaToken = tok
           }
   exists <-
@@ -77,7 +77,7 @@ mkFederatorClientEnv :: Remote x -> Handler FederatorClientEnv
 mkFederatorClientEnv remote = do
   loc <- view localUnit
   endpoint <-
-    view (options . optFederator)
+    view (options . federator)
       >>= maybe (throwE federationNotConfigured) pure
   mgr <- view http2Manager
   pure

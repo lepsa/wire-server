@@ -47,24 +47,24 @@ import Wire.API.Password (Password)
 -- Code
 
 data Code = Code
-  { codeKey :: !Key,
-    codeValue :: !Value,
-    codeTTL :: !Timeout,
-    codeConversation :: !ConvId,
-    codeScope :: !Scope,
-    codeHasPassword :: !Bool
+  { key :: !Key,
+    value :: !Value,
+    ttl :: !Timeout,
+    conversation :: !ConvId,
+    scope :: !Scope,
+    hasPassword :: !Bool
   }
   deriving (Eq, Show, Generic)
 
 toCode :: Key -> Scope -> (Value, Int32, ConvId, Maybe Password) -> (Code, Maybe Password)
 toCode k s (val, ttl, cnv, mPw) =
   ( Code
-      { codeKey = k,
-        codeValue = val,
-        codeTTL = Timeout (fromIntegral ttl),
-        codeConversation = cnv,
-        codeScope = s,
-        codeHasPassword = isJust mPw
+      { key = k,
+        value = val,
+        ttl = Timeout (fromIntegral ttl),
+        conversation = cnv,
+        scope = s,
+        hasPassword = isJust mPw
       },
     mPw
   )
@@ -82,12 +82,12 @@ generate cnv s t = do
   val <- liftIO $ Value . unsafeRange . Ascii.encodeBase64Url <$> randBytes 15
   pure
     Code
-      { codeKey = key,
-        codeValue = val,
-        codeConversation = cnv,
-        codeTTL = t,
-        codeScope = s,
-        codeHasPassword = False
+      { key = key,
+        value = val,
+        conversation = cnv,
+        ttl = t,
+        scope = s,
+        hasPassword = False
       }
 
 mkKey :: MonadIO m => ConvId -> m Key

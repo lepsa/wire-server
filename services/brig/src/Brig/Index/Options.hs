@@ -22,40 +22,40 @@
 module Brig.Index.Options
   ( Command (..),
     ElasticSettings,
-    esServer,
-    esIndex,
-    esIndexShardCount,
-    esIndexReplicas,
-    esIndexRefreshInterval,
-    esDeleteTemplate,
+    server,
+    index,
+    indexShardCount,
+    indexReplicas,
+    indexRefreshInterval,
+    deleteTemplate,
     CassandraSettings,
-    cHost,
-    cPort,
-    cKeyspace,
+    host,
+    port,
+    keyspace,
     localElasticSettings,
     localCassandraSettings,
     commandParser,
     mkCreateIndexSettings,
     toESServer,
     ReindexFromAnotherIndexSettings,
-    reindexDestIndex,
-    reindexSrcIndex,
-    reindexEsServer,
-    reindexTimeoutSeconds,
+    destIndex,
+    srcIndex,
+    esServer,
+    timeoutSeconds,
   )
 where
 
 import Brig.Index.Types (CreateIndexSettings (..))
 import Cassandra qualified as C
-import Control.Lens
-import Data.ByteString.Lens
-import Data.Text.Strict.Lens
+import Control.Lens ()
+import Data.ByteString.Lens ()
+import Data.Text.Strict.Lens ()
 import Data.Time.Clock (NominalDiffTime)
 import Database.Bloodhound qualified as ES
 import Imports
-import Options.Applicative
-import URI.ByteString
-import URI.ByteString.QQ
+import Options.Applicative ()
+import URI.ByteString (Absolute, URIRef)
+import URI.ByteString.QQ ()
 import Util.Options (Endpoint (..))
 
 data Command
@@ -70,27 +70,27 @@ data Command
   deriving (Show)
 
 data ElasticSettings = ElasticSettings
-  { _esServer :: URIRef Absolute,
-    _esIndex :: ES.IndexName,
-    _esIndexShardCount :: Int,
-    _esIndexReplicas :: ES.ReplicaCount,
-    _esIndexRefreshInterval :: NominalDiffTime,
-    _esDeleteTemplate :: Maybe ES.TemplateName
+  { _server :: URIRef Absolute,
+    _index :: ES.IndexName,
+    _indexShardCount :: Int,
+    _indexReplicas :: ES.ReplicaCount,
+    _indexRefreshInterval :: NominalDiffTime,
+    _deleteTemplate :: Maybe ES.TemplateName
   }
   deriving (Show)
 
 data CassandraSettings = CassandraSettings
-  { _cHost :: String,
-    _cPort :: Word16,
-    _cKeyspace :: C.Keyspace
+  { _host :: String,
+    _port :: Word16,
+    _keyspace :: C.Keyspace
   }
   deriving (Show)
 
 data ReindexFromAnotherIndexSettings = ReindexFromAnotherIndexSettings
-  { _reindexEsServer :: URIRef Absolute,
-    _reindexSrcIndex :: ES.IndexName,
-    _reindexDestIndex :: ES.IndexName,
-    _reindexTimeoutSeconds :: Int
+  { _esServer :: URIRef Absolute,
+    _srcIndex :: ES.IndexName,
+    _destIndex :: ES.IndexName,
+    _timeoutSeconds :: Int
   }
   deriving (Show)
 
@@ -112,20 +112,20 @@ mkCreateIndexSettings es =
 localElasticSettings :: ElasticSettings
 localElasticSettings =
   ElasticSettings
-    { _esServer = [uri|http://localhost:9200|],
-      _esIndex = ES.IndexName "directory_test",
-      _esIndexShardCount = 1,
-      _esIndexReplicas = ES.ReplicaCount 1,
-      _esIndexRefreshInterval = 1,
-      _esDeleteTemplate = Nothing
+    { _server = [uri|http://localhost:9200|],
+      _index = ES.IndexName "directory_test",
+      _indexShardCount = 1,
+      _indexReplicas = ES.ReplicaCount 1,
+      _indexRefreshInterval = 1,
+      _deleteTemplate = Nothing
     }
 
 localCassandraSettings :: CassandraSettings
 localCassandraSettings =
   CassandraSettings
-    { _cHost = "localhost",
-      _cPort = 9042,
-      _cKeyspace = C.Keyspace "brig_test"
+    { _host = "localhost",
+      _port = 9042,
+      _keyspace = C.Keyspace "brig_test"
     }
 
 elasticServerParser :: Parser (URIRef Absolute)

@@ -41,8 +41,8 @@ import Util.Options
 import Wire.API.Internal.Notification
 
 data PaginateResult = PaginateResult
-  { paginateResultGap :: Bool,
-    paginateResultPage :: QueuedNotificationList
+  { gap :: Bool,
+    page :: QueuedNotificationList
   }
 
 paginate :: UserId -> Maybe NotificationId -> Maybe ClientId -> Range 100 10000 Int32 -> Gundeck PaginateResult

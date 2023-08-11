@@ -581,8 +581,8 @@ performConversationAccessData qusr lconv action = do
           Nothing -> pure bm
 
 data LocalConversationUpdate = LocalConversationUpdate
-  { lcuEvent :: Event,
-    lcuUpdate :: ConversationUpdate
+  { event :: Event,
+    update :: ConversationUpdate
   }
   deriving (Show)
 

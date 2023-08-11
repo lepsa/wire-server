@@ -85,24 +85,24 @@ import Wire.API.Internal.Notification
 type Payload = List1 Aeson.Object
 
 data ClientInfo = ClientInfo
-  { _ciNativeAddress :: Maybe (Address, Bool {- reachable -}),
-    _ciWSReachable :: Bool
+  { _nativeAddress :: Maybe (Address, Bool {- reachable -}),
+    _wsReachable :: Bool
   }
   deriving (Eq, Show)
 
 newtype MockEnv = MockEnv
-  { _meClientInfos :: Map UserId (Map ClientId ClientInfo)
+  { _clientInfos :: Map UserId (Map ClientId ClientInfo)
   }
   deriving (Eq, Show)
 
 data MockState = MockState
   { -- | A record of notifications that have been pushed via websockets.
-    _msWSQueue :: NotifQueue,
+    _wsQueue :: NotifQueue,
     -- | A record of notifications that have been pushed via native push.
-    _msNativeQueue :: NotifQueue,
+    _nativeQueue :: NotifQueue,
     -- | Non-transient notifications that are stored in the database first thing before
     -- delivery (so clients can always come back and pick them up later until they expire).
-    _msCassQueue :: NotifQueue
+    _cassQueue :: NotifQueue
   }
   deriving (Eq)
 
@@ -202,17 +202,16 @@ genMockEnv = do
   -- This function generates a 'ClientInfo' that corresponds to one of the
   -- four scenarios above
   let genClientInfo :: HasCallStack => UserId -> ClientId -> Gen ClientInfo
-      genClientInfo uid cid = do
-        _ciNativeAddress <-
-          QC.oneof
+      genClientInfo uid cid =
+        ClientInfo
+          <$> QC.oneof
             [ pure Nothing,
               do
                 protoaddr <- genProtoAddress uid cid
                 reachable <- arbitrary
                 pure $ Just (protoaddr, reachable)
             ]
-        _ciWSReachable <- arbitrary
-        pure ClientInfo {..}
+          <*> arbitrary
   -- Generate a list of users
   uids :: [UserId] <-
     nub <$> listOf1 genId
@@ -262,9 +261,9 @@ validateMockEnv env = do
     -- UserId and ClientId contained in Address must match the keys under which they are stored.
     checkIdsInNativeAddresses :: m ()
     checkIdsInNativeAddresses = do
-      forM_ (Map.toList $ env ^. meClientInfos) $ \(uid, cinfos) -> do
+      forM_ (Map.toList $ env ^. clientInfos) $ \(uid, cinfos) -> do
         forM_ (Map.toList cinfos) $ \(cid, cinfo) -> do
-          forM_ (cinfo ^. ciNativeAddress) $ \(adr, _) -> do
+          forM_ (cinfo ^. nativeAddress) $ \(adr, _) -> do
             unless (uid == adr ^. addrUser && cid == adr ^. addrClient) $ do
               throwError (show (uid, cid, adr))
 
@@ -483,13 +482,13 @@ handlePushWS Push {..} = do
           RecipientClientsSome cc -> toList cc
     forM_ cids' $ \cid -> do
       -- Condition 1: only devices with a working websocket connection will get the push.
-      let isReachable = wsReachable env (uid, cid)
+      let isReachable = wsReachableMockEnv env (uid, cid)
       -- Condition 2: we never deliver pushes to the originating device.
       let isOriginDevice = origin == (Just uid, Just cid)
       -- Condition 3: push to cid iff (a) listed in pushConnections or (b) pushConnections is empty.
       let isWhitelisted = null _pushConnections || fakeConnId cid `elem` _pushConnections
       when (isReachable && not isOriginDevice && isWhitelisted) $
-        msWSQueue %= deliver (uid, cid) _pushPayload
+        wsQueue %= deliver (uid, cid) _pushPayload
   where
     origin = (_pushOrigin, clientIdFromConnId <$> _pushOriginConnection)
 
@@ -512,7 +511,7 @@ handlePushNative Push {..} = do
       let isNative = route /= RouteDirect
       -- Condition 3: to get a native push, the device must be native-reachable but not
       -- websocket-reachable, as websockets take priority.
-      let isReachable = nativeReachable env (uid, cid) && not (wsReachable env (uid, cid))
+      let isReachable = nativeReachable env (uid, cid) && not (wsReachableMockEnv env (uid, cid))
       -- Condition 4: the originating *user* can receive a native push only if
       -- 'pushNativeIncludeOrigin' is true. Even so, the originating *device* should never
       -- receive a push.
@@ -523,7 +522,7 @@ handlePushNative Push {..} = do
       -- Condition 5: push to cid iff (a) listed in pushConnections or (b) pushConnections is empty.
       let isWhitelisted = null _pushConnections || fakeConnId cid `elem` _pushConnections
       when (isNative && isReachable && isAllowedPerOriginRules && isWhitelisted) $
-        msNativeQueue %= deliver (uid, cid) _pushPayload
+        nativeQueue %= deliver (uid, cid) _pushPayload
   where
     origin = (_pushOrigin, clientIdFromConnId <$> _pushOriginConnection)
 
@@ -545,7 +544,7 @@ handlePushCass Push {..} = do
           -- store a specific 'ClientId' that signifies "no client".)
           RecipientClientsSome cc -> toList cc
     forM_ cids' $ \cid ->
-      msCassQueue %= deliver (uid, cid) _pushPayload
+      cassQueue %= deliver (uid, cid) _pushPayload
 
 mockMkNotificationId ::
   (HasCallStack, m ~ MockGundeck) =>
@@ -575,10 +574,10 @@ mockBulkPush notifs = do
       deliveredprcs :: [Presence]
       deliveredprcs = filter isreachable . mconcat . fmap fakePresences $ allRecipients env
       isreachable :: Presence -> Bool
-      isreachable prc = wsReachable env (userId prc, fromJust $ clientId prc)
+      isreachable prc = wsReachableMockEnv env (userId prc, fromJust $ clientId prc)
   forM_ delivered $ \(notif, prcs) -> do
     forM_ prcs $ \prc ->
-      msWSQueue
+      wsQueue
         %= deliver (userId prc, clientIdFromConnId $ connId prc) (ntfPayload notif)
   pure $ (_1 %~ ntfId) <$> delivered
 
@@ -593,9 +592,9 @@ mockStreamAdd ::
 mockStreamAdd _ (toList -> targets) pay _ =
   forM_ targets $ \tgt -> case tgt ^. targetClients of
     clients@(_ : _) -> forM_ clients $ \cid ->
-      msCassQueue %= deliver (tgt ^. targetUser, cid) pay
+      cassQueue %= deliver (tgt ^. targetUser, cid) pay
     [] ->
-      msCassQueue %= deliver (tgt ^. targetUser, ClientId mempty) pay
+      cassQueue %= deliver (tgt ^. targetUser, ClientId mempty) pay
 
 mockPushNative ::
   (HasCallStack, m ~ MockGundeck) =>
@@ -607,7 +606,7 @@ mockPushNative (ntfPayload -> payload) _ addrs = do
   env <- ask
   forM_ addrs $ \addr -> do
     when (nativeReachableAddr env addr) $
-      msNativeQueue
+      nativeQueue
         %= deliver (addr ^. addrUser, addr ^. addrClient) payload
 
 mockLookupAddresses ::
@@ -619,8 +618,8 @@ mockLookupAddresses uid = do
     Map.elems
       . fromMaybe (error $ "mockLookupAddress: unknown UserId: " <> show uid)
       . Map.lookup uid
-      <$> asks (^. meClientInfos)
-  pure . mapMaybe (^? ciNativeAddress . _Just . _1) $ cinfos
+      <$> asks (^. clientInfos)
+  pure . mapMaybe (^? nativeAddress . _Just . _1) $ cinfos
 
 mockBulkSend ::
   (HasCallStack, m ~ MockGundeck) =>
@@ -635,7 +634,7 @@ mockBulkSend uri notifs = do
           mconcat $ (\(ntif, trgts) -> (ntif,) <$> trgts) <$> ntifs
   forM_ flat $ \(ntif, ptgt) -> do
     when (getstatus ptgt == PushStatusOk) $
-      msWSQueue
+      wsQueue
         %= deliver (ptUserId ptgt, clientIdFromConnId $ ptConnId ptgt) (ntfPayload ntif)
   pure . (uri,) . Right $
     BulkPushResponse
@@ -685,7 +684,7 @@ mockOldSimpleWebPush notif tgts _senderid mconnid connWhitelist = do
             [] -> clientIdsOfUser env (tgt ^. targetUser)
             same@(_ : _) -> same
   forM_ clients $ \(userid, clientid) -> do
-    msWSQueue %= deliver (userid, clientid) (ntfPayload notif)
+    wsQueue %= deliver (userid, clientid) (ntfPayload notif)
   pure $ uncurry fakePresence <$> clients
 
 ----------------------------------------------------------------------
@@ -729,19 +728,19 @@ mkWSStatus :: MockGundeck (PushTarget -> PushStatus)
 mkWSStatus = do
   env <- ask
   pure $ \trgt ->
-    if wsReachable env (ptUserId trgt, clientIdFromConnId $ ptConnId trgt)
+    if wsReachableMockEnv env (ptUserId trgt, clientIdFromConnId $ ptConnId trgt)
       then PushStatusOk
       else PushStatusGone
 
-wsReachable :: MockEnv -> (UserId, ClientId) -> Bool
-wsReachable (MockEnv mp) (uid, cid) =
-  maybe False (^. ciWSReachable) $
+wsReachableMockEnv :: MockEnv -> (UserId, ClientId) -> Bool
+wsReachableMockEnv (MockEnv mp) (uid, cid) =
+  maybe False (^. wsReachable) $
     (Map.lookup uid >=> Map.lookup cid) mp
 
 nativeReachable :: MockEnv -> (UserId, ClientId) -> Bool
 nativeReachable (MockEnv mp) (uid, cid) =
   maybe False (^. _2) $
-    (Map.lookup uid >=> Map.lookup cid >=> (^. ciNativeAddress)) mp
+    (Map.lookup uid >=> Map.lookup cid >=> (^. nativeAddress)) mp
 
 nativeReachableAddr :: MockEnv -> Address -> Bool
 nativeReachableAddr env addr = nativeReachable env (addr ^. addrUser, addr ^. addrClient)

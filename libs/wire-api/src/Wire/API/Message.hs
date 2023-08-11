@@ -90,10 +90,10 @@ import Wire.Arbitrary (Arbitrary (..), GenericUniform (..))
 -- Message
 
 data MessageMetadata = MessageMetadata
-  { mmNativePush :: Bool,
-    mmTransient :: Bool,
-    mmNativePriority :: Maybe Priority,
-    mmData :: Maybe Text
+  { nativePush :: Bool,
+    transient :: Bool,
+    nativePriority :: Maybe Priority,
+    data' :: Maybe Text
   }
   deriving stock (Eq, Generic, Ord, Show)
   deriving (Arbitrary) via (GenericUniform MessageMetadata)
@@ -102,10 +102,10 @@ data MessageMetadata = MessageMetadata
 messageMetadataObjectSchema :: ObjectSchema SwaggerDoc MessageMetadata
 messageMetadataObjectSchema =
   MessageMetadata
-    <$> mmNativePush .= fmap (fromMaybe True) (optField "native_push" schema)
-    <*> mmTransient .= fmap (fromMaybe False) (optField "transient" schema)
-    <*> mmNativePriority .= maybe_ (optField "native_priority" schema)
-    <*> mmData .= maybe_ (optField "data" schema)
+    <$> (.nativePush) .= fmap (fromMaybe True) (optField "native_push" schema)
+    <*> (.transient) .= fmap (fromMaybe False) (optField "transient" schema)
+    <*> (.nativePriority) .= maybe_ (optField "native_priority" schema)
+    <*> (.data') .= maybe_ (optField "data" schema)
 
 instance ToSchema MessageMetadata where
   schema = object "MessageMetadata" messageMetadataObjectSchema
@@ -113,20 +113,20 @@ instance ToSchema MessageMetadata where
 defMessageMetadata :: MessageMetadata
 defMessageMetadata =
   MessageMetadata
-    { mmNativePush = True,
-      mmTransient = False,
-      mmNativePriority = Nothing,
-      mmData = Nothing
+    { nativePush = True,
+      transient = False,
+      nativePriority = Nothing,
+      data' = Nothing
     }
 
 data NewOtrMessage = NewOtrMessage
-  { newOtrSender :: ClientId,
-    newOtrRecipients :: OtrRecipients,
-    newOtrNativePush :: Bool,
-    newOtrTransient :: Bool,
-    newOtrNativePriority :: Maybe Priority,
-    newOtrData :: Maybe Text,
-    newOtrReportMissing :: Maybe [UserId]
+  { sender :: ClientId,
+    recipients :: OtrRecipients,
+    nativePush :: Bool,
+    transient :: Bool,
+    nativePriority :: Maybe Priority,
+    data' :: Maybe Text,
+    reportMissing :: Maybe [UserId]
     -- FUTUREWORK: if (and only if) clients can promise this uid list will always exactly
     -- be the list of uids we could also extract from the messages' recipients field, we
     -- should do the latter, for two reasons: (1) no need for an artificial limit on the
@@ -139,29 +139,29 @@ data NewOtrMessage = NewOtrMessage
 newOtrMessageMetadata :: NewOtrMessage -> MessageMetadata
 newOtrMessageMetadata msg =
   MessageMetadata
-    (newOtrNativePush msg)
-    (newOtrTransient msg)
-    (newOtrNativePriority msg)
-    (newOtrData msg)
+    msg.nativePush
+    msg.transient
+    msg.nativePriority
+    msg.data'
 
 instance ToSchema NewOtrMessage where
   schema =
     object "new-otr-message" $
       mk
-        <$> newOtrSender .= field "sender" schema
-        <*> newOtrRecipients .= field "recipients" schema
+        <$> (.sender) .= field "sender" schema
+        <*> (.recipients) .= field "recipients" schema
         <*> newOtrMessageMetadata .= messageMetadataObjectSchema
-        <*> newOtrReportMissing .= maybe_ (optField "report_missing" (array schema))
+        <*> (.reportMissing) .= maybe_ (optField "report_missing" (array schema))
     where
       mk :: ClientId -> OtrRecipients -> MessageMetadata -> Maybe [UserId] -> NewOtrMessage
       mk cid rcpts mm =
         NewOtrMessage
           cid
           rcpts
-          (mmNativePush mm)
-          (mmTransient mm)
-          (mmNativePriority mm)
-          (mmData mm)
+          mm.nativePush
+          mm.transient
+          mm.nativePriority
+          mm.data'
 
 instance FromProto NewOtrMessage where
   fromProto bs = protoToNewOtrMessage <$> runGet Protobuf.decodeMessage bs
@@ -169,13 +169,13 @@ instance FromProto NewOtrMessage where
 protoToNewOtrMessage :: Proto.NewOtrMessage -> NewOtrMessage
 protoToNewOtrMessage msg =
   NewOtrMessage
-    { newOtrSender = Proto.toClientId (view Proto.newOtrMessageSender msg),
-      newOtrRecipients = protoToOtrRecipients (view Proto.newOtrMessageRecipients msg),
-      newOtrNativePush = view Proto.newOtrMessageNativePush msg,
-      newOtrTransient = view Proto.newOtrMessageTransient msg,
-      newOtrData = toBase64Text <$> view Proto.newOtrMessageData msg,
-      newOtrNativePriority = protoToPriority <$> view Proto.newOtrMessageNativePriority msg,
-      newOtrReportMissing = protoToReportMissing $ view Proto.newOtrMessageReportMissing msg
+    { sender = Proto.toClientId (view Proto.newOtrMessageSender msg),
+      recipients = protoToOtrRecipients (view Proto.newOtrMessageRecipients msg),
+      nativePush = view Proto.newOtrMessageNativePush msg,
+      transient = view Proto.newOtrMessageTransient msg,
+      data' = toBase64Text <$> view Proto.newOtrMessageData msg,
+      nativePriority = protoToPriority <$> view Proto.newOtrMessageNativePriority msg,
+      reportMissing = protoToReportMissing $ view Proto.newOtrMessageReportMissing msg
     }
 
 protoToReportMissing :: [Proto.UserId] -> Maybe [UserId]
@@ -183,13 +183,13 @@ protoToReportMissing [] = Nothing
 protoToReportMissing us = Just $ view Proto.userId <$> us
 
 data QualifiedNewOtrMessage = QualifiedNewOtrMessage
-  { qualifiedNewOtrSender :: ClientId,
-    qualifiedNewOtrRecipients :: QualifiedOtrRecipients,
-    qualifiedNewOtrNativePush :: Bool,
-    qualifiedNewOtrTransient :: Bool,
-    qualifiedNewOtrNativePriority :: Maybe Priority,
-    qualifiedNewOtrData :: ByteString,
-    qualifiedNewOtrClientMismatchStrategy :: ClientMismatchStrategy
+  { sender :: ClientId,
+    recipients :: QualifiedOtrRecipients,
+    nativePush :: Bool,
+    transient :: Bool,
+    nativePriority :: Maybe Priority,
+    data' :: ByteString,
+    clientMismatchStrategy :: ClientMismatchStrategy
   }
   deriving stock (Eq, Show, Generic)
   deriving (Arbitrary) via (GenericUniform QualifiedNewOtrMessage)
@@ -197,10 +197,10 @@ data QualifiedNewOtrMessage = QualifiedNewOtrMessage
 qualifiedNewOtrMetadata :: QualifiedNewOtrMessage -> MessageMetadata
 qualifiedNewOtrMetadata msg =
   MessageMetadata
-    { mmNativePush = qualifiedNewOtrNativePush msg,
-      mmTransient = qualifiedNewOtrTransient msg,
-      mmNativePriority = qualifiedNewOtrNativePriority msg,
-      mmData = Just . toBase64Text $ qualifiedNewOtrData msg
+    { nativePush = msg.nativePush,
+      transient = msg.transient,
+      nativePriority = msg.nativePriority,
+      data' = Just $ toBase64Text msg.data'
     }
 
 instance S.ToSchema QualifiedNewOtrMessage where
@@ -225,13 +225,13 @@ protolensToQualifiedNewOtrMessage protoMsg = do
   strat <- protolensToClientMismatchStrategy $ view Proto.Otr.maybe'clientMismatchStrategy protoMsg
   pure $
     QualifiedNewOtrMessage
-      { qualifiedNewOtrSender = protolensToClientId $ view Proto.Otr.sender protoMsg,
-        qualifiedNewOtrRecipients = recipients,
-        qualifiedNewOtrNativePush = view Proto.Otr.nativePush protoMsg,
-        qualifiedNewOtrTransient = view Proto.Otr.transient protoMsg,
-        qualifiedNewOtrNativePriority = protolensToPriority <$> view Proto.Otr.maybe'nativePriority protoMsg,
-        qualifiedNewOtrData = view Proto.Otr.blob protoMsg,
-        qualifiedNewOtrClientMismatchStrategy = strat
+      { sender = protolensToClientId $ view Proto.Otr.sender protoMsg,
+        recipients = recipients,
+        nativePush = view Proto.Otr.nativePush protoMsg,
+        transient = view Proto.Otr.transient protoMsg,
+        nativePriority = protolensToPriority <$> view Proto.Otr.maybe'nativePriority protoMsg,
+        data' = view Proto.Otr.blob protoMsg,
+        clientMismatchStrategy = strat
       }
 
 protolensToClientId :: Proto.Otr.ClientId -> ClientId
@@ -240,25 +240,25 @@ protolensToClientId = newClientId . view Proto.Otr.client
 qualifiedNewOtrMessageToProto :: QualifiedNewOtrMessage -> Proto.Otr.QualifiedNewOtrMessage
 qualifiedNewOtrMessageToProto msg =
   ProtoLens.defMessage
-    & Proto.Otr.sender .~ clientIdToProtolens (qualifiedNewOtrSender msg)
-    & Proto.Otr.recipients .~ qualifiedOtrRecipientsToProtolens (qualifiedNewOtrRecipients msg)
-    & Proto.Otr.blob .~ qualifiedNewOtrData msg
-    & Proto.Otr.nativePush .~ qualifiedNewOtrNativePush msg
-    & Proto.Otr.maybe'nativePriority .~ fmap priorityToProtolens (qualifiedNewOtrNativePriority msg)
-    & Proto.Otr.transient .~ qualifiedNewOtrTransient msg
-    & Proto.Otr.maybe'clientMismatchStrategy ?~ clientMismatchStrategyToProtolens (qualifiedNewOtrClientMismatchStrategy msg)
+    & Proto.Otr.sender .~ clientIdToProtolens msg.sender
+    & Proto.Otr.recipients .~ qualifiedOtrRecipientsToProtolens msg.recipients
+    & Proto.Otr.blob .~ msg.data'
+    & Proto.Otr.nativePush .~ msg.nativePush
+    & Proto.Otr.maybe'nativePriority .~ fmap priorityToProtolens msg.nativePriority
+    & Proto.Otr.transient .~ msg.transient
+    & Proto.Otr.maybe'clientMismatchStrategy ?~ clientMismatchStrategyToProtolens msg.clientMismatchStrategy
 
 mkQualifiedOtrPayload :: ClientId -> [(Qualified UserId, ClientId, ByteString)] -> ByteString -> ClientMismatchStrategy -> Proto.Otr.QualifiedNewOtrMessage
 mkQualifiedOtrPayload sender entries dat strat =
   qualifiedNewOtrMessageToProto
     QualifiedNewOtrMessage
-      { qualifiedNewOtrSender = sender,
-        qualifiedNewOtrRecipients = mkRecipients entries,
-        qualifiedNewOtrNativePush = True,
-        qualifiedNewOtrNativePriority = Nothing,
-        qualifiedNewOtrTransient = False,
-        qualifiedNewOtrClientMismatchStrategy = strat,
-        qualifiedNewOtrData = dat
+      { sender = sender,
+        recipients = mkRecipients entries,
+        nativePush = True,
+        nativePriority = Nothing,
+        transient = False,
+        clientMismatchStrategy = strat,
+        data' = dat
       }
   where
     mkRecipients =

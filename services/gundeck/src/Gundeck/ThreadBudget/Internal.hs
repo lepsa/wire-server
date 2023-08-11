@@ -38,15 +38,15 @@ import UnliftIO.Async
 import UnliftIO.Exception (finally)
 
 data ThreadBudgetState = ThreadBudgetState
-  { threadBudgetLimits :: MaxConcurrentNativePushes,
-    _threadBudgetRunning :: IORef BudgetMap
+  { limits :: MaxConcurrentNativePushes,
+    _running :: IORef BudgetMap
   }
   deriving (Generic)
 
 -- | Store all handles for cleanup in 'watchThreadBudgetState'.
 data BudgetMap = BudgetMap
-  { bspent :: Int,
-    bmap :: HashMap UUID (Int, Maybe (Async ()))
+  { spent :: Int,
+    map :: HashMap UUID (Int, Maybe (Async ()))
   }
   deriving (Eq, Generic)
 

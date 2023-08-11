@@ -167,8 +167,8 @@ createInvitationPublicH uid tid body = do
       InvitationLocation $ "/teams/" <> toByteString' tid <> "/invitations/" <> toByteString' (inInvitation inv)
 
 data CreateInvitationInviter = CreateInvitationInviter
-  { inviterUid :: UserId,
-    inviterEmail :: Email
+  { uid :: UserId,
+    email :: Email
   }
   deriving (Eq, Show)
 

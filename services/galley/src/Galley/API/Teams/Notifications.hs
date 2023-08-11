@@ -69,7 +69,7 @@ getTeamNotifications zusr since size = do
   page <- E.getTeamNotifications tid since size
   pure $
     queuedNotificationList
-      (toList (DataTeamQueue.resultSeq page))
+      (toList (DataTeamQueue.seq page))
       (DataTeamQueue.resultHasMore page)
       Nothing
 

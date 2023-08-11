@@ -49,16 +49,16 @@ interpretCodeStoreToCassandra = interpret $ \case
   MakeKey cid -> Code.mkKey cid
   GenerateCode cid s t -> Code.generate cid s t
   GetConversationCodeURI ->
-    view (options . optSettings . setConversationCodeURI) <$> input
+    view (options . settings . conversationCodeURI) <$> input
 
 -- | Insert a conversation code
 insertCode :: Code -> Maybe Password -> Client ()
 insertCode c mPw = do
-  let k = codeKey c
-  let v = codeValue c
-  let cnv = codeConversation c
-  let t = round (codeTTL c)
-  let s = codeScope c
+  let k = c.key
+  let v = c.value
+  let cnv = c.conversation
+  let t = round c.ttl
+  let s = c.scope
   retry x5 (write Cql.insertCode (params LocalQuorum (k, v, cnv, s, mPw, t)))
 
 -- | Lookup a conversation by code.

@@ -38,7 +38,7 @@ import Network.HTTP.Client.OpenSSL
 import OpenSSL.EVP.Digest
 import OpenSSL.Session as Ssl
 import Ssl.Util
-import System.Logger
+import System.Logger (Logger, Msg, (.=))
 import Util.Options
 import Wire.API.MLS.Credential
 import Wire.API.MLS.Keys
@@ -68,7 +68,7 @@ data Env = Env
 -- | Environment specific to the communication with external
 -- service providers.
 data ExtEnv = ExtEnv
-  { _extGetManager :: (Manager, [Fingerprint Rsa] -> Ssl.SSL -> IO ())
+  { _getManager :: (Manager, [Fingerprint Rsa] -> Ssl.SSL -> IO ())
   }
 
 makeLenses ''Env
@@ -104,6 +104,6 @@ reqIdMsg = ("request" .=) . unRequestId
 
 currentFanoutLimit :: Opts -> Range 1 HardTruncationLimit Int32
 currentFanoutLimit o = do
-  let optFanoutLimit = fromIntegral . fromRange $ fromMaybe defFanoutLimit (o ^. (optSettings . setMaxFanoutSize))
-  let maxTeamSize = fromIntegral (o ^. (optSettings . setMaxTeamSize))
-  unsafeRange (min maxTeamSize optFanoutLimit)
+  let optFanoutLimit = fromIntegral . fromRange $ fromMaybe defFanoutLimit (o ^. settings . maxFanoutSize)
+  let maxTeamSize' = fromIntegral (o ^. settings . maxTeamSize)
+  unsafeRange (min maxTeamSize' optFanoutLimit)

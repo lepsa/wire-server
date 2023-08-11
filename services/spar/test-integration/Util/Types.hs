@@ -71,32 +71,32 @@ instance MonadRandom TestSpar where
 
 -- | See 'mkEnv' about what's in here.
 data TestEnv = TestEnv
-  { _teMgr :: Manager,
-    _teCql :: Cas.ClientState,
-    _teBrig :: BrigReq,
-    _teGalley :: GalleyReq,
-    _teSpar :: SparReq,
-    _teSparEnv :: Spar.Env,
+  { _mgr :: Manager,
+    _cql :: Cas.ClientState,
+    _brig :: BrigReq,
+    _galley :: GalleyReq,
+    _spar :: SparReq,
+    _sparEnv :: Spar.Env,
     -- | spar config
-    _teOpts :: Opts,
+    _opts :: Opts,
     -- | integration test config
-    _teTstOpts :: IntegrationConfig,
+    _tstOpts :: IntegrationConfig,
     -- | If True, run tests against legacy SAML API where team is derived from idp issuer
     -- instead of teamid.  See Section "using the same IdP (same entityID, or Issuer) with
     -- different teams" in "/docs/reference/spar-braindump.md" for more details.
     --
     -- NB: this has no impact on the tested spar code; the rest API supports both legacy and
     -- multi-sp mode.  this falg merely determines how the rest API is used.
-    _teWireIdPAPIVersion :: WireIdPAPIVersion
+    _wireIdPAPIVersion :: WireIdPAPIVersion
   }
 
 type Select = TestEnv -> (Request -> Request)
 
 data IntegrationConfig = IntegrationConfig
-  { cfgBrig :: Endpoint,
-    cfgGalley :: Endpoint,
-    cfgSpar :: Endpoint,
-    cfgBrigSettingsTeamInvitationTimeout :: Int
+  { brig :: Endpoint,
+    galley :: Endpoint,
+    spar :: Endpoint,
+    brigSettingsTeamInvitationTimeout :: Int
   }
   deriving (Show, Generic)
 

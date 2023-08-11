@@ -75,9 +75,9 @@ newtype S3AssetKey = S3AssetKey {s3Key :: Text}
 
 -- | Asset metadata tracked in S3.
 data S3AssetMeta = S3AssetMeta
-  { v3AssetOwner :: V3.Principal,
-    v3AssetToken :: Maybe V3.AssetToken,
-    v3AssetType :: MIME.Type -- should be ignored, see note on overrideMimeTypeAsOctetStream. FUTUREWORK: remove entirely.
+  { owner :: V3.Principal,
+    token :: Maybe V3.AssetToken,
+    type' :: MIME.Type -- should be ignored, see note on overrideMimeTypeAsOctetStream. FUTUREWORK: remove entirely.
   }
   deriving (Show)
 

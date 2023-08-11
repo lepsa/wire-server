@@ -73,9 +73,9 @@ mkRequest :: Endpoint -> Request -> Request
 mkRequest (Endpoint h p) = Bilge.host (encodeUtf8 h) . Bilge.port p
 
 data TestSetup = TestSetup
-  { _tsManager :: Manager,
-    _tsEndpoint :: Endpoint,
-    _tsOpts :: Opts
+  { _manager :: Manager,
+    _endpoint :: Endpoint,
+    _opts :: Opts
   }
 
 makeLenses ''TestSetup

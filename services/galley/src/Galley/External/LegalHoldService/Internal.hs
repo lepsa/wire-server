@@ -81,7 +81,7 @@ makeVerifiedRequest ::
   (Http.Request -> Http.Request) ->
   App (Http.Response LC8.ByteString)
 makeVerifiedRequest fpr url reqBuilder = do
-  (mgr, verifyFingerprints) <- view (extEnv . extGetManager)
+  (mgr, verifyFingerprints) <- view (extEnv . getManager)
   makeVerifiedRequestWithManager mgr verifyFingerprints fpr url reqBuilder
 
 -- | NOTE: Use this function wisely - this creates a new manager _every_ time it is called.
