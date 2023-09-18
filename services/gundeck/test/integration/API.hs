@@ -98,7 +98,8 @@ tests s =
           test s "Bad 'since' parameter (from API Version 3)" testFetchNotifBadSinceV3,
           test s "Fetch notification by ID" testFetchNotifById,
           test s "Filter notifications by client" testFilterNotifByClient,
-          test s "Paging" testNotificationPaging
+          test s "Paging" testNotificationPaging,
+          test s "Paging TODO" testNotificationPagingV2
         ],
       testGroup
         "Clients"
@@ -705,6 +706,25 @@ testNotificationPaging = do
       liftIO $ assertEqual "has more" (Just (count' < total)) more
       pure (count', start')
 
+testNotificationPagingV2 :: TestM ()
+testNotificationPagingV2 = do
+  alice <- randomId
+  clt1 <- randomClientId
+  -- Add n notifications for client 1
+  replicateM_ notificationCount $
+    sendPush
+      ( buildPush
+          alice
+          [(alice, RecipientClientsSome (List1.singleton clt1))]
+          -- Send a big payload
+          (textPayload $ cs $ replicate payloadSize '0')
+      )
+  ns <- listNotificationsV2 alice (Just clt1) (Just notificationCount)
+  liftIO $ assertEqual "hasMore /= False" False $ view queuedHasMore ns
+  where
+    notificationCount = 100
+    payloadSize = 1024 * 1024
+
 -----------------------------------------------------------------------------
 -- Client registration
 
@@ -1110,6 +1130,13 @@ listNotifications u c = do
         (const $ pure (view queuedNotifications ns))
         (view queuedTime ns)
 
+listNotificationsV2 :: HasCallStack => UserId -> Maybe ClientId -> Maybe Int -> TestM QueuedNotificationList
+listNotificationsV2 u c s = do
+  rs <- getNotificationsV2 u c s <!! const 200 === statusCode
+  case responseBody rs >>= decode of
+    Nothing -> error "Failed to decode notifications"
+    Just ns -> pure ns
+
 getNotifications :: UserId -> Maybe ClientId -> TestM (Response (Maybe BL.ByteString))
 getNotifications u c =
   view tsGundeck >>= \gu ->
@@ -1118,6 +1145,16 @@ getNotifications u c =
         . zUser u
         . paths ["v3", "notifications"]
         . maybe id (queryItem "client" . toByteString') c
+
+getNotificationsV2 :: UserId -> Maybe ClientId -> Maybe Int -> TestM (Response (Maybe BL.ByteString))
+getNotificationsV2 u c s =
+  view tsGundeck >>= \gu ->
+    get $
+      runGundeckR gu
+        . zUser u
+        . paths ["v2", "notifications"]
+        . maybe id (queryItem "client" . toByteString') c
+        . maybe id (queryItem "size" . toByteString') s
 
 getLastNotification :: UserId -> Maybe ClientId -> TestM (Response (Maybe BL.ByteString))
 getLastNotification u c =

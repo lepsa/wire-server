@@ -22,6 +22,10 @@ module Gundeck.Notification.Data
     fetchId,
     fetchLast,
     deleteAll,
+    -- exported for tests
+    collect,
+    NotifRow,
+    mkResultPage,
   )
 where
 
@@ -187,6 +191,7 @@ fetchPayloads c left rows = do
   s <- Seq.fromList . catMaybes <$> pooledMapConcurrentlyN 16 (fetchPayload c) rows'
   pure (s, left')
   where
+    truncateNotifs :: [NotifRow] -> Int -> Int32 -> [NotifRow] -> ([NotifRow], Int32)
     truncateNotifs acc _i l [] = (reverse acc, l)
     truncateNotifs acc i l (row : rest)
       | i > 0 && l <= 0 = (reverse acc, l)
@@ -200,6 +205,9 @@ fetchPayloads c left rows = do
 collect :: (MonadReader Env m, MonadClient m, MonadUnliftIO m) => Maybe ClientId -> Seq QueuedNotification -> Bool -> Int -> Int32 -> m (Page NotifRow) -> m (Seq QueuedNotification, Bool)
 collect c acc lastPageHasMore remaining remainingBytes getPage
   | remaining <= 0 = pure (acc, lastPageHasMore)
+  -- Why do these two results not use lastPageHasMore?
+  -- remainingBytes being <= 0 happens when
+  -- fetchPayloads
   | remainingBytes <= 0 = pure (acc, True)
   | not lastPageHasMore = pure (acc, False)
   | otherwise = do
