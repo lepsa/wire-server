@@ -124,7 +124,6 @@ sitemap' =
     :<|> Named @"revoke-identity" revokeIdentity
     :<|> Named @"put-email" changeEmail
     :<|> Named @"put-phone" changePhone
-    :<|> Named @"delete-user" deleteUser
     :<|> Named @"suspend-team" (setTeamStatusH Team.Suspended)
     :<|> Named @"unsuspend-team" (setTeamStatusH Team.Active)
     :<|> Named @"delete-team" deleteTeam
@@ -171,6 +170,7 @@ sitemap' =
     :<|> Named @"get-oauth-client" Intra.getOAuthClient
     :<|> Named @"update-oauth-client" Intra.updateOAuthClient
     :<|> Named @"delete-oauth-client" Intra.deleteOAuthClient
+    :<|> Named @"delete-user" deleteUser
 
 sitemapInternal :: Servant.Server SternAPIInternal
 sitemapInternal =

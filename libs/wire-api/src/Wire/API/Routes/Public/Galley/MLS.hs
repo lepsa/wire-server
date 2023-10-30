@@ -34,13 +34,28 @@ import Wire.API.Routes.Version
 
 type MLSMessagingAPI =
   Named
-    "mls-message"
-    ( Summary "Post an MLS message"
+    "mls-public-keys"
+    ( Summary "Get public keys used by the backend to sign external proposals"
+        :> From 'V5
+        :> CanThrow 'MLSNotEnabled
+        :> "public-keys"
+        :> ZLocalUser
+        :> MultiVerb1 'GET '[JSON] (Respond 200 "Public keys" MLSPublicKeys)
+    )
+    :<|> MLSMessagingAPINotification
+
+type MLSMessagingAPINotification =
+  Named
+    "mls-commit-bundle"
+    ( Summary "Post a MLS CommitBundle"
         :> From 'V5
         :> MakesFederatedCall 'Galley "on-mls-message-sent"
-        :> MakesFederatedCall 'Galley "send-mls-message"
+        :> MakesFederatedCall 'Galley "mls-welcome"
+        :> MakesFederatedCall 'Galley "send-mls-commit-bundle"
         :> MakesFederatedCall 'Galley "on-conversation-updated"
         :> MakesFederatedCall 'Brig "get-mls-clients"
+        :> MakesFederatedCall 'Brig "get-users-by-ids"
+        :> MakesFederatedCall 'Brig "api-version"
         :> CanThrow 'ConvAccessDenied
         :> CanThrow 'ConvMemberNotFound
         :> CanThrow 'ConvNotFound
@@ -59,27 +74,25 @@ type MLSMessagingAPI =
         :> CanThrow 'MLSSubConvClientNotInParent
         :> CanThrow 'MLSUnsupportedMessage
         :> CanThrow 'MLSUnsupportedProposal
+        :> CanThrow 'MLSWelcomeMismatch
         :> CanThrow MLSProposalFailure
         :> CanThrow NonFederatingBackends
         :> CanThrow UnreachableBackends
-        :> "messages"
+        :> "commit-bundles"
         :> ZLocalUser
         :> ZClient
         :> ZConn
-        :> ReqBody '[MLS] (RawMLS Message)
-        :> MultiVerb1 'POST '[JSON] (Respond 201 "Message sent" MLSMessageSendingStatus)
+        :> ReqBody '[MLS] (RawMLS CommitBundle)
+        :> MultiVerb1 'POST '[JSON] (Respond 201 "Commit accepted and forwarded" MLSMessageSendingStatus)
     )
     :<|> Named
-           "mls-commit-bundle"
-           ( Summary "Post a MLS CommitBundle"
+           "mls-message"
+           ( Summary "Post an MLS message"
                :> From 'V5
                :> MakesFederatedCall 'Galley "on-mls-message-sent"
-               :> MakesFederatedCall 'Galley "mls-welcome"
-               :> MakesFederatedCall 'Galley "send-mls-commit-bundle"
+               :> MakesFederatedCall 'Galley "send-mls-message"
                :> MakesFederatedCall 'Galley "on-conversation-updated"
                :> MakesFederatedCall 'Brig "get-mls-clients"
-               :> MakesFederatedCall 'Brig "get-users-by-ids"
-               :> MakesFederatedCall 'Brig "api-version"
                :> CanThrow 'ConvAccessDenied
                :> CanThrow 'ConvMemberNotFound
                :> CanThrow 'ConvNotFound
@@ -98,25 +111,15 @@ type MLSMessagingAPI =
                :> CanThrow 'MLSSubConvClientNotInParent
                :> CanThrow 'MLSUnsupportedMessage
                :> CanThrow 'MLSUnsupportedProposal
-               :> CanThrow 'MLSWelcomeMismatch
                :> CanThrow MLSProposalFailure
                :> CanThrow NonFederatingBackends
                :> CanThrow UnreachableBackends
-               :> "commit-bundles"
+               :> "messages"
                :> ZLocalUser
                :> ZClient
                :> ZConn
-               :> ReqBody '[MLS] (RawMLS CommitBundle)
-               :> MultiVerb1 'POST '[JSON] (Respond 201 "Commit accepted and forwarded" MLSMessageSendingStatus)
-           )
-    :<|> Named
-           "mls-public-keys"
-           ( Summary "Get public keys used by the backend to sign external proposals"
-               :> From 'V5
-               :> CanThrow 'MLSNotEnabled
-               :> "public-keys"
-               :> ZLocalUser
-               :> MultiVerb1 'GET '[JSON] (Respond 200 "Public keys" MLSPublicKeys)
+               :> ReqBody '[MLS] (RawMLS Message)
+               :> MultiVerb1 'POST '[JSON] (Respond 201 "Message sent" MLSMessageSendingStatus)
            )
 
 type MLSAPI = LiftNamed ("mls" :> MLSMessagingAPI)

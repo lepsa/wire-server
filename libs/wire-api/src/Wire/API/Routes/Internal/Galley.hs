@@ -185,19 +185,6 @@ type InternalAPIBase =
     ( "status" :> MultiVerb 'GET '[Servant.JSON] '[RespondEmpty 200 "OK"] ()
     )
     -- This endpoint can lead to the following events being sent:
-    -- - MemberLeave event to members for all conversations the user was in
-    :<|> Named
-           "delete-user"
-           ( Summary
-               "Remove a user from their teams and conversations and erase their clients"
-               :> MakesFederatedCall 'Galley "on-conversation-updated"
-               :> MakesFederatedCall 'Galley "on-mls-message-sent"
-               :> ZLocalUser
-               :> ZOptConn
-               :> "user"
-               :> MultiVerb 'DELETE '[Servant.JSON] '[RespondEmpty 200 "Remove a user from Galley"] ()
-           )
-    -- This endpoint can lead to the following events being sent:
     -- - ConvCreate event to self, if conversation did not exist before
     -- - ConvConnect event to self, if other didn't join the connect conversation before
     :<|> Named
@@ -249,6 +236,22 @@ type InternalAPIBase =
            )
     :<|> IFeatureAPI
     :<|> IFederationAPI
+    :<|> InternalAPIBaseNotification
+
+type InternalAPIBaseNotification =
+  -- This endpoint can lead to the following events being sent:
+  -- - MemberLeave event to members for all conversations the user was in
+  Named
+    "delete-user"
+    ( Summary
+        "Remove a user from their teams and conversations and erase their clients"
+        :> MakesFederatedCall 'Galley "on-conversation-updated"
+        :> MakesFederatedCall 'Galley "on-mls-message-sent"
+        :> ZLocalUser
+        :> ZOptConn
+        :> "user"
+        :> MultiVerb 'DELETE '[Servant.JSON] '[RespondEmpty 200 "Remove a user from Galley"] ()
+    )
 
 type ILegalholdWhitelistedTeamsAPI =
   "legalhold"

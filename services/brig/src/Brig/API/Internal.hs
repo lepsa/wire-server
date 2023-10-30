@@ -153,10 +153,8 @@ accountAPI =
   Named @"createUserNoVerify" (callsFed (exposeAnnotations createUserNoVerify))
     :<|> Named @"createUserNoVerifySpar" (callsFed (exposeAnnotations createUserNoVerifySpar))
     :<|> Named @"putSelfEmail" changeSelfEmailMaybeSendH
-    :<|> Named @"iDeleteUser" deleteUserNoAuthH
     :<|> Named @"iPutUserStatus" changeAccountStatusH
     :<|> Named @"iGetUserStatus" getAccountStatusH
-    :<|> Named @"iGetUsersByVariousKeys" listActivatedAccountsH
     :<|> Named @"iGetUserContacts" getContactListH
     :<|> Named @"iGetUserActivationCode" getActivationCodeH
     :<|> Named @"iGetUserPasswordResetCode" getPasswordResetCodeH
@@ -182,6 +180,8 @@ accountAPI =
     :<|> Named @"iAddClient" addClientInternalH
     :<|> Named @"iLegalholdAddClient" legalHoldClientRequestedH
     :<|> Named @"iLegalholdDeleteClient" removeLegalHoldClientH
+    :<|> Named @"iDeleteUser" deleteUserNoAuthH
+    :<|> Named @"iGetUsersByVariousKeys" listActivatedAccountsH
 
 teamsAPI ::
   ( Member GalleyProvider r,

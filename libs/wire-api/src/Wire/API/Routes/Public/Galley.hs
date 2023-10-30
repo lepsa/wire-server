@@ -39,7 +39,7 @@ type GalleyAPI =
   ConversationAPI
     :<|> TeamConversationAPI
     :<|> MessagingAPI
-    :<|> BotAPI
+    :<|> BotAPINotification
     :<|> TeamAPI
     :<|> FeatureAPI
     :<|> MLSAPI

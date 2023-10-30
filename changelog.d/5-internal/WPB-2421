@@ -1,0 +1,1 @@
+Re-organising the internal API structures to better show which routes use the notification infrastructure.

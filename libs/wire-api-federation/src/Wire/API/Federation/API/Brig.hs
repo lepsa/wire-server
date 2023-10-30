@@ -23,7 +23,6 @@ where
 
 import Data.Aeson
 import Data.Domain (Domain)
-import Data.Handle (Handle)
 import Data.Id
 import Data.OpenApi (OpenApi, ToSchema)
 import Data.Proxy (Proxy (Proxy))
@@ -36,47 +35,20 @@ import Wire.API.Federation.Endpoint
 import Wire.API.Federation.Version
 import Wire.API.MLS.CipherSuite
 import Wire.API.MLS.KeyPackage
-import Wire.API.User (UserProfile)
 import Wire.API.User.Client
 import Wire.API.User.Client.Prekey (ClientPrekey, PrekeyBundle)
-import Wire.API.User.Search
 import Wire.API.UserMap (UserMap)
 import Wire.API.Util.Aeson (CustomEncoded (..))
 import Wire.Arbitrary (GenericUniform (..))
 
-newtype SearchRequest = SearchRequest {term :: Text}
-  deriving (Show, Eq, Generic, Typeable)
-  deriving (Arbitrary) via (GenericUniform SearchRequest)
-
-instance ToJSON SearchRequest
-
-instance FromJSON SearchRequest
-
-instance ToSchema SearchRequest
-
-data SearchResponse = SearchResponse
-  { contacts :: [Contact],
-    searchPolicy :: FederatedUserSearchPolicy
-  }
-  deriving (Show, Generic, Typeable)
-
-instance ToJSON SearchResponse
-
-instance FromJSON SearchResponse
-
-instance ToSchema SearchResponse
-
 -- | For conventions see /docs/developer/federation-api-conventions.md
 type BrigApi =
   FedEndpoint "api-version" () VersionInfo
-    :<|> FedEndpoint "get-user-by-handle" Handle (Maybe UserProfile)
-    :<|> FedEndpoint "get-users-by-ids" [UserId] [UserProfile]
     :<|> FedEndpoint "claim-prekey" (UserId, ClientId) (Maybe ClientPrekey)
     :<|> FedEndpoint "claim-prekey-bundle" UserId PrekeyBundle
     :<|> FedEndpoint "claim-multi-prekey-bundle" UserClients UserClientPrekeyMap
     -- FUTUREWORK(federation): do we want to perform some type-level validation like length checks?
     -- (handles can be up to 256 chars currently)
-    :<|> FedEndpoint "search-users" SearchRequest SearchResponse
     :<|> FedEndpoint "get-user-clients" GetUserClients (UserMap (Set PubClient))
     :<|> FedEndpoint "get-mls-clients" MLSClientsRequest (Set ClientInfo)
     :<|> FedEndpoint "send-connection-action" NewConnectionRequest NewConnectionResponse

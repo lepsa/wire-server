@@ -37,15 +37,15 @@ import Wire.API.ServantProto
 
 type MessagingAPI =
   Named
-    "post-otr-message-unqualified"
-    ( Summary "Post an encrypted message to a conversation (accepts JSON or Protobuf)"
+    "post-otr-broadcast-unqualified"
+    ( Summary "Broadcast an encrypted message to all team members and all contacts (accepts JSON or Protobuf)"
         :> Description PostOtrDescriptionUnqualified
-        :> MakesFederatedCall 'Galley "on-message-sent"
-        :> MakesFederatedCall 'Brig "get-user-clients"
         :> ZLocalUser
         :> ZConn
-        :> "conversations"
-        :> Capture "cnv" ConvId
+        :> CanThrow 'TeamNotFound
+        :> CanThrow 'BroadcastLimitExceeded
+        :> CanThrow 'NonBindingTeam
+        :> "broadcast"
         :> "otr"
         :> "messages"
         :> QueryParam "ignore_missing" IgnoreMissing
@@ -53,51 +53,10 @@ type MessagingAPI =
         :> ReqBody '[JSON, Proto] NewOtrMessage
         :> MultiVerb
              'POST
-             '[Servant.JSON]
+             '[JSON]
              (PostOtrResponses ClientMismatch)
              (PostOtrResponse ClientMismatch)
     )
-    :<|> Named
-           "post-otr-broadcast-unqualified"
-           ( Summary "Broadcast an encrypted message to all team members and all contacts (accepts JSON or Protobuf)"
-               :> Description PostOtrDescriptionUnqualified
-               :> ZLocalUser
-               :> ZConn
-               :> CanThrow 'TeamNotFound
-               :> CanThrow 'BroadcastLimitExceeded
-               :> CanThrow 'NonBindingTeam
-               :> "broadcast"
-               :> "otr"
-               :> "messages"
-               :> QueryParam "ignore_missing" IgnoreMissing
-               :> QueryParam "report_missing" ReportMissing
-               :> ReqBody '[JSON, Proto] NewOtrMessage
-               :> MultiVerb
-                    'POST
-                    '[JSON]
-                    (PostOtrResponses ClientMismatch)
-                    (PostOtrResponse ClientMismatch)
-           )
-    :<|> Named
-           "post-proteus-message"
-           ( Summary "Post an encrypted message to a conversation (accepts only Protobuf)"
-               :> Description PostOtrDescription
-               :> MakesFederatedCall 'Brig "get-user-clients"
-               :> MakesFederatedCall 'Galley "on-message-sent"
-               :> MakesFederatedCall 'Galley "send-message"
-               :> ZLocalUser
-               :> ZConn
-               :> "conversations"
-               :> QualifiedCapture "cnv" ConvId
-               :> "proteus"
-               :> "messages"
-               :> ReqBody '[Proto] (RawProto QualifiedNewOtrMessage)
-               :> MultiVerb
-                    'POST
-                    '[Servant.JSON]
-                    (PostOtrResponses MessageSendingStatus)
-                    (Either (MessageNotSent MessageSendingStatus) MessageSendingStatus)
-           )
     :<|> Named
            "post-proteus-broadcast"
            ( Summary "Post an encrypted message to all team members and all contacts (accepts only Protobuf)"
@@ -116,6 +75,50 @@ type MessagingAPI =
                     '[JSON]
                     (PostOtrResponses MessageSendingStatus)
                     (Either (MessageNotSent MessageSendingStatus) MessageSendingStatus)
+           )
+    :<|> MessagingAPINotification
+
+type MessagingAPINotification =
+  Named
+    "post-proteus-message"
+    ( Summary "Post an encrypted message to a conversation (accepts only Protobuf)"
+        :> Description PostOtrDescription
+        :> MakesFederatedCall 'Brig "get-user-clients"
+        :> MakesFederatedCall 'Galley "on-message-sent"
+        :> MakesFederatedCall 'Galley "send-message"
+        :> ZLocalUser
+        :> ZConn
+        :> "conversations"
+        :> QualifiedCapture "cnv" ConvId
+        :> "proteus"
+        :> "messages"
+        :> ReqBody '[Proto] (RawProto QualifiedNewOtrMessage)
+        :> MultiVerb
+             'POST
+             '[Servant.JSON]
+             (PostOtrResponses MessageSendingStatus)
+             (Either (MessageNotSent MessageSendingStatus) MessageSendingStatus)
+    )
+    :<|> Named
+           "post-otr-message-unqualified"
+           ( Summary "Post an encrypted message to a conversation (accepts JSON or Protobuf)"
+               :> Description PostOtrDescriptionUnqualified
+               :> MakesFederatedCall 'Galley "on-message-sent"
+               :> MakesFederatedCall 'Brig "get-user-clients"
+               :> ZLocalUser
+               :> ZConn
+               :> "conversations"
+               :> Capture "cnv" ConvId
+               :> "otr"
+               :> "messages"
+               :> QueryParam "ignore_missing" IgnoreMissing
+               :> QueryParam "report_missing" ReportMissing
+               :> ReqBody '[JSON, Proto] NewOtrMessage
+               :> MultiVerb
+                    'POST
+                    '[Servant.JSON]
+                    (PostOtrResponses ClientMismatch)
+                    (PostOtrResponse ClientMismatch)
            )
 
 data MessageNotSent a

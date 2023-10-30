@@ -294,6 +294,32 @@ type UserAPI =
                     (Respond 200 "Protocols supported by the user" (Set BaseProtocolTag))
            )
 
+type SelfAPINotification =
+  -- This endpoint can lead to the following events being sent:
+  -- - UserDeleted event to contacts of self
+  -- - MemberLeave event to members for all conversations the user was in (via galley)
+  Named
+    "delete-self"
+    ( Summary "Initiate account deletion."
+        :> Description
+             "if the account has a verified identity, a verification \
+             \code is sent and needs to be confirmed to authorise the \
+             \deletion. if the account has no verified identity but a \
+             \password, it must be provided. if password is correct, or if neither \
+             \a verified identity nor a password exists, account deletion \
+             \is scheduled immediately."
+        :> CanThrow 'InvalidUser
+        :> CanThrow 'InvalidCode
+        :> CanThrow 'BadCredentials
+        :> CanThrow 'MissingAuth
+        :> CanThrow 'DeleteCodePending
+        :> CanThrow 'OwnerDeletingSelf
+        :> ZUser
+        :> "self"
+        :> ReqBody '[JSON] DeleteUser
+        :> MultiVerb 'DELETE '[JSON] DeleteSelfResponses (Maybe Timeout)
+    )
+
 type SelfAPI =
   Named
     "get-self"
@@ -303,31 +329,6 @@ type SelfAPI =
         :> "self"
         :> Get '[JSON] SelfProfile
     )
-    :<|>
-    -- This endpoint can lead to the following events being sent:
-    -- - UserDeleted event to contacts of self
-    -- - MemberLeave event to members for all conversations the user was in (via galley)
-    Named
-      "delete-self"
-      ( Summary "Initiate account deletion."
-          :> Description
-               "if the account has a verified identity, a verification \
-               \code is sent and needs to be confirmed to authorise the \
-               \deletion. if the account has no verified identity but a \
-               \password, it must be provided. if password is correct, or if neither \
-               \a verified identity nor a password exists, account deletion \
-               \is scheduled immediately."
-          :> CanThrow 'InvalidUser
-          :> CanThrow 'InvalidCode
-          :> CanThrow 'BadCredentials
-          :> CanThrow 'MissingAuth
-          :> CanThrow 'DeleteCodePending
-          :> CanThrow 'OwnerDeletingSelf
-          :> ZUser
-          :> "self"
-          :> ReqBody '[JSON] DeleteUser
-          :> MultiVerb 'DELETE '[JSON] DeleteSelfResponses (Maybe Timeout)
-      )
     :<|>
     -- This endpoint can lead to the following events being sent:
     -- - UserUpdated event to contacts of self
@@ -434,6 +435,33 @@ type SelfAPI =
                :> ReqBody '[JSON] SupportedProtocolUpdate
                :> MultiVerb1 'PUT '[JSON] (RespondEmpty 200 "Supported protocols changed")
            )
+    :<|> SelfAPINotifications
+
+type SelfAPINotifications =
+  -- This endpoint can lead to the following events being sent:
+  -- - UserDeleted event to contacts of self
+  -- - MemberLeave event to members for all conversations the user was in (via galley)
+  Named
+    "delete-self"
+    ( Summary "Initiate account deletion."
+        :> Description
+             "if the account has a verified identity, a verification \
+             \code is sent and needs to be confirmed to authorise the \
+             \deletion. if the account has no verified identity but a \
+             \password, it must be provided. if password is correct, or if neither \
+             \a verified identity nor a password exists, account deletion \
+             \is scheduled immediately."
+        :> CanThrow 'InvalidUser
+        :> CanThrow 'InvalidCode
+        :> CanThrow 'BadCredentials
+        :> CanThrow 'MissingAuth
+        :> CanThrow 'DeleteCodePending
+        :> CanThrow 'OwnerDeletingSelf
+        :> ZUser
+        :> "self"
+        :> ReqBody '[JSON] DeleteUser
+        :> MultiVerb 'DELETE '[JSON] DeleteSelfResponses (Maybe Timeout)
+    )
 
 type UserHandleAPI =
   Named
@@ -482,17 +510,6 @@ type AccountAPI =
         :> ReqBody '[JSON] NewUserPublic
         :> MultiVerb 'POST '[JSON] RegisterResponses (Either RegisterError RegisterSuccess)
     )
-    -- This endpoint can lead to the following events being sent:
-    -- UserDeleted event to contacts of deleted user
-    -- MemberLeave event to members for all conversations the user was in (via galley)
-    :<|> Named
-           "verify-delete"
-           ( Summary "Verify account deletion with a code."
-               :> CanThrow 'InvalidCode
-               :> "delete"
-               :> ReqBody '[JSON] VerifyDeleteUser
-               :> MultiVerb 'POST '[JSON] '[RespondEmpty 200 "Deletion is initiated."] ()
-           )
     -- This endpoint can lead to the following events being sent:
     -- - UserActivated event to the user, if account gets activated
     -- - UserIdentityUpdated event to the user, if email or phone get activated
@@ -598,6 +615,20 @@ type AccountAPI =
                :> ReqBody '[JSON] JsonValue
                :> Post '[JSON] DeprecatedMatchingResult
            )
+    :<|> AccountAPINotification
+
+type AccountAPINotification =
+  -- This endpoint can lead to the following events being sent:
+  -- UserDeleted event to contacts of deleted user
+  -- MemberLeave event to members for all conversations the user was in (via galley)
+  Named
+    "verify-delete"
+    ( Summary "Verify account deletion with a code."
+        :> CanThrow 'InvalidCode
+        :> "delete"
+        :> ReqBody '[JSON] VerifyDeleteUser
+        :> MultiVerb 'POST '[JSON] '[RespondEmpty 200 "Deletion is initiated."] ()
+    )
 
 newtype JsonValue = JsonValue {fromJsonValue :: A.Value}
   deriving (A.ToJSON, A.FromJSON, S.ToSchema) via (Schema JsonValue)

@@ -18,13 +18,17 @@
 module Wire.API.Federation.API.Brig.Notifications where
 
 import Data.Aeson
+import Data.Handle
 import Data.Id
 import Data.OpenApi (ToSchema)
 import Data.Range
 import Imports
+import Servant
 import Wire.API.Federation.Component
 import Wire.API.Federation.Endpoint
 import Wire.API.Federation.HasNotificationEndpoint
+import Wire.API.User
+import Wire.API.User.Search
 import Wire.API.Util.Aeson
 import Wire.Arbitrary
 
@@ -57,3 +61,29 @@ instance ToSchema UserDeletedConnectionsNotification
 type BrigNotificationAPI =
   -- FUTUREWORK: Use NotificationAPI 'OnUserDeletedConnectionsTag 'Brig instead
   NotificationFedEndpoint 'OnUserDeletedConnectionsTag
+    -- These routes are similar to those above, but not all of their requests go via a queue
+    :<|> FedEndpoint "search-users" SearchRequest SearchResponse
+    :<|> FedEndpoint "get-users-by-ids" [UserId] [UserProfile]
+    :<|> FedEndpoint "get-user-by-handle" Handle (Maybe UserProfile)
+
+newtype SearchRequest = SearchRequest {term :: Text}
+  deriving (Show, Eq, Generic, Typeable)
+  deriving (Arbitrary) via (GenericUniform SearchRequest)
+
+instance ToJSON SearchRequest
+
+instance FromJSON SearchRequest
+
+instance ToSchema SearchRequest
+
+data SearchResponse = SearchResponse
+  { contacts :: [Contact],
+    searchPolicy :: FederatedUserSearchPolicy
+  }
+  deriving (Show, Generic, Typeable)
+
+instance ToJSON SearchResponse
+
+instance FromJSON SearchResponse
+
+instance ToSchema SearchResponse

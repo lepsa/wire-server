@@ -178,17 +178,6 @@ type SternAPI =
                :> Put '[JSON] NoContent
            )
     :<|> Named
-           "delete-user"
-           ( Summary "Delete a user (irrevocable!)"
-               :> Description
-                    "Email or Phone must match UserId's (to prevent copy/paste mistakes).  Use exactly one of the two query params."
-               :> "users"
-               :> Capture "uid" UserId
-               :> QueryParam' [Optional, Strict, Description "A verified email address"] "email" Email
-               :> QueryParam' [Optional, Strict, Description "A verified phone number (E.164 format)."] "phone" Phone
-               :> Delete '[JSON] NoContent
-           )
-    :<|> Named
            "suspend-team"
            ( Summary "Suspend a team."
                :> "teams"
@@ -446,6 +435,20 @@ type SternAPI =
                :> Capture "id" OAuthClientId
                :> Delete '[JSON] ()
            )
+    :<|> SternAPINotification
+
+type SternAPINotification =
+  Named
+    "delete-user"
+    ( Summary "Delete a user (irrevocable!)"
+        :> Description
+             "Email or Phone must match UserId's (to prevent copy/paste mistakes).  Use exactly one of the two query params."
+        :> "users"
+        :> Capture "uid" UserId
+        :> QueryParam' [Optional, Strict, Description "A verified email address"] "email" Email
+        :> QueryParam' [Optional, Strict, Description "A verified phone number (E.164 format)."] "phone" Phone
+        :> Delete '[JSON] NoContent
+    )
 
 -------------------------------------------------------------------------------
 -- Swagger

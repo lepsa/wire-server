@@ -25,6 +25,6 @@ import Wire.API.Routes.Public.Galley.MLS
 
 mlsAPI :: API MLSAPI GalleyEffects
 mlsAPI =
-  mkNamedAPI @"mls-message" (callsFed (exposeAnnotations postMLSMessageFromLocalUser))
+  mkNamedAPI @"mls-public-keys" getMLSPublicKeys
     <@> mkNamedAPI @"mls-commit-bundle" (callsFed (exposeAnnotations postMLSCommitBundleFromLocalUser))
-    <@> mkNamedAPI @"mls-public-keys" getMLSPublicKeys
+    <@> mkNamedAPI @"mls-message" (callsFed (exposeAnnotations postMLSMessageFromLocalUser))

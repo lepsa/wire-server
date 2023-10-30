@@ -103,24 +103,26 @@ federationSitemap ::
 federationSitemap =
   Named @"on-conversation-created" onConversationCreated
     :<|> Named @"get-conversations" getConversations
-    :<|> Named @"leave-conversation" (callsFed (exposeAnnotations leaveConversation))
-    :<|> Named @"send-message" (callsFed (exposeAnnotations sendMessage))
-    :<|> Named @"update-conversation" (callsFed (exposeAnnotations updateConversation))
     :<|> Named @"mls-welcome" mlsSendWelcome
-    :<|> Named @"send-mls-message" (callsFed (exposeAnnotations sendMLSMessage))
-    :<|> Named @"send-mls-commit-bundle" (callsFed (exposeAnnotations sendMLSCommitBundle))
     :<|> Named @"query-group-info" queryGroupInfo
     :<|> Named @"update-typing-indicator" (callsFed (exposeAnnotations updateTypingIndicator))
     :<|> Named @"on-typing-indicator-updated" onTypingIndicatorUpdated
     :<|> Named @"get-sub-conversation" getSubConversationForRemoteUser
     :<|> Named @"delete-sub-conversation" (callsFed deleteSubConversationForRemoteUser)
-    :<|> Named @"leave-sub-conversation" (callsFed leaveSubConversation)
     :<|> Named @"get-one2one-conversation" getOne2OneConversation
+    -- Other known notification using routes
     :<|> Named @"on-client-removed" (callsFed (exposeAnnotations onClientRemoved))
     :<|> Named @"on-message-sent" onMessageSent
     :<|> Named @"on-mls-message-sent" onMLSMessageSent
     :<|> Named @"on-conversation-updated" onConversationUpdated
     :<|> Named @"on-user-deleted-conversations" (callsFed (exposeAnnotations onUserDeleted))
+    -- Routes that use notifications in some way
+    :<|> Named @"leave-conversation" (callsFed (exposeAnnotations leaveConversation))
+    :<|> Named @"update-conversation" (callsFed (exposeAnnotations updateConversation))
+    :<|> Named @"send-mls-commit-bundle" (callsFed (exposeAnnotations sendMLSCommitBundle))
+    :<|> Named @"send-mls-message" (callsFed (exposeAnnotations sendMLSMessage))
+    :<|> Named @"leave-sub-conversation" (callsFed leaveSubConversation)
+    :<|> Named @"send-message" (callsFed (exposeAnnotations sendMessage))
 
 onClientRemoved ::
   ( Member BackendNotificationQueueAccess r,

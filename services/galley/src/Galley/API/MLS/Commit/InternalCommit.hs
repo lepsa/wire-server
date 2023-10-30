@@ -57,6 +57,9 @@ import Wire.API.MLS.Commit
 import Wire.API.MLS.Credential
 import Wire.API.MLS.Proposal qualified as Proposal
 import Wire.API.MLS.SubConversation
+  ( ConvOrSubChoice (Conv, SubConv),
+    _SubConv,
+  )
 import Wire.API.Unreachable
 import Wire.API.User.Client
 

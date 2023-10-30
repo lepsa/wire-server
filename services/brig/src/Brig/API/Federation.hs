@@ -81,18 +81,18 @@ federationSitemap ::
   ServerT FederationAPI (Handler r)
 federationSitemap =
   Named @"api-version" (\_ _ -> pure versionInfo)
-    :<|> Named @"get-user-by-handle" (\d h -> getUserByHandle d h)
-    :<|> Named @"get-users-by-ids" (\d us -> getUsersByIds d us)
     :<|> Named @"claim-prekey" claimPrekey
     :<|> Named @"claim-prekey-bundle" claimPrekeyBundle
     :<|> Named @"claim-multi-prekey-bundle" claimMultiPrekeyBundle
-    :<|> Named @"search-users" (\d sr -> searchUsers d sr)
     :<|> Named @"get-user-clients" getUserClients
     :<|> Named @"get-mls-clients" getMLSClients
     :<|> Named @"send-connection-action" sendConnectionAction
     :<|> Named @"claim-key-packages" fedClaimKeyPackages
     :<|> Named @"get-not-fully-connected-backends" getFederationStatus
     :<|> Named @"on-user-deleted-connections" onUserDeleted
+    :<|> Named @"search-users" (\d sr -> searchUsers d sr)
+    :<|> Named @"get-users-by-ids" (\d us -> getUsersByIds d us)
+    :<|> Named @"get-user-by-handle" (\d h -> getUserByHandle d h)
 
 -- Allow remote domains to send their known remote federation instances, and respond
 -- with the subset of those we aren't connected to.

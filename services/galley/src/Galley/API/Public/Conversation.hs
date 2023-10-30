@@ -29,6 +29,10 @@ import Wire.API.Federation.API
 import Wire.API.Routes.API
 import Wire.API.Routes.Public.Galley.Conversation
 
+conversationAPINotification :: API ConversationAPINotification GalleyEffects
+conversationAPINotification =
+  mkNamedAPI @"leave-subconversation" (callsFed leaveSubConversation)
+
 conversationAPI :: API ConversationAPI GalleyEffects
 conversationAPI =
   mkNamedAPI @"get-unqualified-conversation" getUnqualifiedConversation
@@ -52,7 +56,6 @@ conversationAPI =
     <@> mkNamedAPI @"create-self-conversation" createProteusSelfConversation
     <@> mkNamedAPI @"get-mls-self-conversation" getMLSSelfConversationWithError
     <@> mkNamedAPI @"get-subconversation" (callsFed getSubConversation)
-    <@> mkNamedAPI @"leave-subconversation" (callsFed leaveSubConversation)
     <@> mkNamedAPI @"delete-subconversation" (callsFed deleteSubConversation)
     <@> mkNamedAPI @"get-subconversation-group-info" (callsFed getSubConversationGroupInfo)
     <@> mkNamedAPI @"create-one-to-one-conversation@v2" (callsFed createOne2OneConversation)
@@ -89,3 +92,4 @@ conversationAPI =
     <@> mkNamedAPI @"update-conversation-self-unqualified" updateUnqualifiedSelfMember
     <@> mkNamedAPI @"update-conversation-self" updateSelfMember
     <@> mkNamedAPI @"update-conversation-protocol" updateConversationProtocolWithLocalUser
+    <@> mkNamedAPI @"leave-subconversation" (callsFed leaveSubConversation)

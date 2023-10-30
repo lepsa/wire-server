@@ -20,6 +20,7 @@ module Wire.API.Routes.Internal.Brig
     IStatusAPI,
     EJPD_API,
     AccountAPI,
+    AccountAPINotification,
     MLSAPI,
     TeamsAPI,
     UserAPI,
@@ -196,22 +197,6 @@ type AccountAPI =
                     ChangeEmailResponse
            )
     :<|> Named
-           "iDeleteUser"
-           ( Summary
-               "This endpoint will lead to the following events being sent: UserDeleted event to all of \
-               \its contacts, MemberLeave event to members for all conversations the user was in (via galley)"
-               :> CanThrow 'UserNotFound
-               :> "users"
-               :> Capture "uid" UserId
-               :> MultiVerb
-                    'DELETE
-                    '[Servant.JSON]
-                    '[ Respond 200 "UserResponseAccountAlreadyDeleted" (),
-                       Respond 202 "UserResponseAccountDeleted" ()
-                     ]
-                    DeleteUserResponse
-           )
-    :<|> Named
            "iPutUserStatus"
            ( -- FUTUREWORK: `CanThrow ... :>`
              "users"
@@ -227,22 +212,6 @@ type AccountAPI =
                :> Capture "uid" UserId
                :> "status"
                :> Get '[Servant.JSON] AccountStatusResp
-           )
-    :<|> Named
-           "iGetUsersByVariousKeys"
-           ( "users"
-               :> QueryParam' [Optional, Strict] "ids" (CommaSeparatedList UserId)
-               :> QueryParam' [Optional, Strict] "handles" (CommaSeparatedList Handle)
-               :> QueryParam' [Optional, Strict] "email" (CommaSeparatedList Email) -- don't rename to `emails`, for backwards compat!
-               :> QueryParam' [Optional, Strict] "phone" (CommaSeparatedList Phone) -- don't rename to `phones`, for backwards compat!
-               :> QueryParam'
-                    [ Optional,
-                      Strict,
-                      Description "Also return new accounts with team invitation pending"
-                    ]
-                    "includePendingInvitations"
-                    Bool
-               :> Get '[Servant.JSON] [UserAccount]
            )
     :<|> Named
            "iGetUserContacts"
@@ -478,6 +447,41 @@ type AccountAPI =
                :> "legalhold"
                :> Capture "uid" UserId
                :> Delete '[Servant.JSON] NoContent
+           )
+    :<|> AccountAPINotification
+
+type AccountAPINotification =
+  Named
+    "iDeleteUser"
+    ( Summary
+        "This endpoint will lead to the following events being sent: UserDeleted event to all of \
+        \its contacts, MemberLeave event to members for all conversations the user was in (via galley)"
+        :> CanThrow 'UserNotFound
+        :> "users"
+        :> Capture "uid" UserId
+        :> MultiVerb
+             'DELETE
+             '[Servant.JSON]
+             '[ Respond 200 "UserResponseAccountAlreadyDeleted" (),
+                Respond 202 "UserResponseAccountDeleted" ()
+              ]
+             DeleteUserResponse
+    )
+    :<|> Named
+           "iGetUsersByVariousKeys"
+           ( "users"
+               :> QueryParam' [Optional, Strict] "ids" (CommaSeparatedList UserId)
+               :> QueryParam' [Optional, Strict] "handles" (CommaSeparatedList Handle)
+               :> QueryParam' [Optional, Strict] "email" (CommaSeparatedList Email) -- don't rename to `emails`, for backwards compat!
+               :> QueryParam' [Optional, Strict] "phone" (CommaSeparatedList Phone) -- don't rename to `phones`, for backwards compat!
+               :> QueryParam'
+                    [ Optional,
+                      Strict,
+                      Description "Also return new accounts with team invitation pending"
+                    ]
+                    "includePendingInvitations"
+                    Bool
+               :> Get '[Servant.JSON] [UserAccount]
            )
 
 -- | The missing ref is implicit by the capture

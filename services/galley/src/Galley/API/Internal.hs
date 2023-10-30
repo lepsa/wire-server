@@ -107,7 +107,6 @@ internalAPI :: API InternalAPI GalleyEffects
 internalAPI =
   hoistAPI @InternalAPIBase Imports.id $
     mkNamedAPI @"status" (pure ())
-      <@> mkNamedAPI @"delete-user" (callsFed (exposeAnnotations rmUser))
       <@> mkNamedAPI @"connect" (callsFed (exposeAnnotations Create.createConnectConversation))
       <@> mkNamedAPI @"get-conversation-clients" iGetMLSClientListForConv
       <@> mkNamedAPI @"guard-legalhold-policy-conflicts" guardLegalholdPolicyConflictsH
@@ -116,6 +115,7 @@ internalAPI =
       <@> mkNamedAPI @"upsert-one2one" iUpsertOne2OneConversation
       <@> featureAPI
       <@> federationAPI
+      <@> mkNamedAPI @"delete-user" (callsFed (exposeAnnotations rmUser))
 
 federationAPI :: API IFederationAPI GalleyEffects
 federationAPI =
@@ -226,6 +226,14 @@ featureAPI =
     <@> mkNamedAPI @'("ilock", MlsMigrationConfig) (updateLockStatus @MlsMigrationConfig)
     <@> mkNamedAPI @"feature-configs-internal" (maybe getAllFeatureConfigsForServer getAllFeatureConfigsForUser)
 
+internalSitemapNotifications :: Routes a (Sem GalleyEffects) ()
+internalSitemapNotifications =
+  unsafeCallsFed @'Galley @"on-client-removed" $
+    unsafeCallsFed @'Galley @"on-mls-message-sent" $ do
+      delete "/i/clients/:client" (continue Clients.rmClientH) $
+        zauthUserId
+          .&. capture "client"
+
 internalSitemap :: Routes a (Sem GalleyEffects) ()
 internalSitemap = unsafeCallsFed @'Galley @"on-client-removed" $ unsafeCallsFed @'Galley @"on-mls-message-sent" $ do
   -- Conversation API (internal) ----------------------------------------
@@ -279,10 +287,6 @@ internalSitemap = unsafeCallsFed @'Galley @"on-client-removed" $ unsafeCallsFed 
     zauthUserId
       .&. capture "client"
 
-  delete "/i/clients/:client" (continue Clients.rmClientH) $
-    zauthUserId
-      .&. capture "client"
-
   post "/i/services" (continue Update.addServiceH) $
     jsonRequest @Service
 
@@ -310,6 +314,7 @@ internalSitemap = unsafeCallsFed @'Galley @"on-client-removed" $ unsafeCallsFed 
   delete "/i/custom-backend/by-domain/:domain" (continue CustomBackend.internalDeleteCustomBackendByDomainH) $
     capture "domain"
       .&. accept "application" "json"
+  internalSitemapNotifications
 
 rmUser ::
   forall p1 p2 r.

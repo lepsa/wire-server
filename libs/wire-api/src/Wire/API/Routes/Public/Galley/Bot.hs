@@ -28,7 +28,7 @@ import Wire.API.Routes.Named
 import Wire.API.Routes.Public
 import Wire.API.Routes.Public.Galley.Messaging
 
-type BotAPI =
+type BotAPINotification =
   Named
     "post-bot-message-unqualified"
     ( MakesFederatedCall 'Galley "on-message-sent"

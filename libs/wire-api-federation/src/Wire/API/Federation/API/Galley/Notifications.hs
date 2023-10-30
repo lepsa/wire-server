@@ -21,6 +21,7 @@
 module Wire.API.Federation.API.Galley.Notifications where
 
 import Data.Aeson
+import Data.Domain
 import Data.Id
 import Data.Json.Util
 import Data.List.NonEmpty
@@ -29,14 +30,17 @@ import Data.Qualified
 import Data.Range
 import Data.Time.Clock
 import Imports
+import Network.Wai.Utilities.JSONResponse
 import Servant.API
 import Wire.API.Conversation.Action
+import Wire.API.Error.Galley
 import Wire.API.Federation.Component
 import Wire.API.Federation.Endpoint
 import Wire.API.Federation.HasNotificationEndpoint
 import Wire.API.MLS.SubConversation
 import Wire.API.MakesFederatedCall
 import Wire.API.Message
+import Wire.API.Routes.Public.Galley.Messaging
 import Wire.API.Util.Aeson
 import Wire.Arbitrary
 
@@ -105,6 +109,61 @@ type GalleyNotificationAPI =
     :<|> NotificationAPI 'OnMLSMessageSentTag 'Galley
     :<|> NotificationAPI 'OnConversationUpdatedTag 'Galley
     :<|> NotificationAPI 'OnUserDeletedConversationsTag 'Galley
+    -- Similar to above, but only that this uses the queue at all, not that it is entirely queue based
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "on-conversation-updated",
+              MakesFederatedCall 'Galley "on-mls-message-sent",
+              MakesFederatedCall 'Brig "get-users-by-ids",
+              MakesFederatedCall 'Brig "api-version"
+            ]
+           "leave-conversation"
+           LeaveConversationRequest
+           LeaveConversationResponse
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "on-conversation-updated",
+              MakesFederatedCall 'Galley "on-mls-message-sent",
+              MakesFederatedCall 'Brig "get-users-by-ids",
+              MakesFederatedCall 'Galley "on-mls-message-sent"
+            ]
+           "update-conversation"
+           ConversationUpdateRequest
+           ConversationUpdateResponse
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "mls-welcome",
+              MakesFederatedCall 'Galley "on-conversation-updated",
+              MakesFederatedCall 'Galley "on-mls-message-sent",
+              MakesFederatedCall 'Galley "send-mls-commit-bundle",
+              MakesFederatedCall 'Brig "get-mls-clients",
+              MakesFederatedCall 'Brig "get-users-by-ids",
+              MakesFederatedCall 'Brig "api-version"
+            ]
+           "send-mls-commit-bundle"
+           MLSMessageSendRequest
+           MLSMessageResponse
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "on-conversation-updated",
+              MakesFederatedCall 'Galley "on-mls-message-sent",
+              MakesFederatedCall 'Galley "send-mls-message",
+              MakesFederatedCall 'Brig "get-mls-clients"
+            ]
+           "send-mls-message"
+           MLSMessageSendRequest
+           MLSMessageResponse
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "on-mls-message-sent"
+            ]
+           "leave-sub-conversation"
+           LeaveSubConversationRequest
+           LeaveSubConversationResponse
+    -- used by a remote backend to send a message to a conversation owned by
+    -- this backend
+    :<|> FedEndpointWithMods
+           '[ MakesFederatedCall 'Galley "on-message-sent",
+              MakesFederatedCall 'Brig "get-user-clients"
+            ]
+           "send-message"
+           ProteusMessageSendRequest
+           MessageSendResponse
 
 data ClientRemovedRequest = ClientRemovedRequest
   { user :: UserId,
@@ -190,3 +249,143 @@ data UserDeletedConversationsNotification = UserDeletedConversationsNotification
   deriving (FromJSON, ToJSON) via (CustomEncoded UserDeletedConversationsNotification)
 
 instance ToSchema UserDeletedConversationsNotification
+
+data LeaveConversationRequest = LeaveConversationRequest
+  { -- | The conversation is assumed to be owned by the target domain, which
+    -- allows us to protect against relay attacks
+    convId :: ConvId,
+    -- | The leaver is assumed to be owned by the origin domain, which allows us
+    -- to protect against spoofing attacks
+    leaver :: UserId
+  }
+  deriving stock (Generic, Eq, Show)
+  deriving (ToJSON, FromJSON) via (CustomEncoded LeaveConversationRequest)
+
+instance ToSchema LeaveConversationRequest
+
+newtype LeaveConversationResponse = LeaveConversationResponse
+  {response :: Either RemoveFromConversationError ()}
+  deriving stock (Eq, Show, Generic)
+  deriving
+    (ToJSON, FromJSON)
+    via (Either (CustomEncoded RemoveFromConversationError) ())
+
+instance ToSchema LeaveConversationResponse
+
+data ConversationUpdateRequest = ConversationUpdateRequest
+  { -- | The user that is attempting to perform the action. This is qualified
+    -- implicitly by the origin domain
+    user :: UserId,
+    -- | Id of conversation the action should be performed on. The is qualified
+    -- implicity by the owning backend which receives this request.
+    convId :: ConvId,
+    action :: SomeConversationAction
+  }
+  deriving stock (Eq, Show, Generic)
+  deriving (Arbitrary) via (GenericUniform ConversationUpdateRequest)
+  deriving (FromJSON, ToJSON) via (CustomEncoded ConversationUpdateRequest)
+
+instance ToSchema ConversationUpdateRequest
+
+data ConversationUpdateResponse
+  = ConversationUpdateResponseError GalleyError
+  | ConversationUpdateResponseUpdate ConversationUpdate
+  | ConversationUpdateResponseNoChanges
+  | ConversationUpdateResponseNonFederatingBackends NonFederatingBackends
+  | ConversationUpdateResponseUnreachableBackends UnreachableBackends
+  deriving stock (Eq, Show, Generic)
+  deriving
+    (ToJSON, FromJSON)
+    via (CustomEncoded ConversationUpdateResponse)
+
+instance ToSchema ConversationUpdateResponse
+
+data MLSMessageSendRequest = MLSMessageSendRequest
+  { -- | Conversation (or sub conversation) is assumed to be owned by the target
+    -- domain, this allows us to protect against relay attacks
+    convOrSubId :: ConvOrSubConvId,
+    -- | Sender is assumed to be owned by the origin domain, this allows us to
+    -- protect against spoofing attacks
+    sender :: UserId,
+    senderClient :: ClientId,
+    rawMessage :: Base64ByteString
+  }
+  deriving stock (Eq, Show, Generic)
+  deriving (Arbitrary) via (GenericUniform MLSMessageSendRequest)
+  deriving (ToJSON, FromJSON) via (CustomEncoded MLSMessageSendRequest)
+
+instance ToSchema MLSMessageSendRequest
+
+data MLSMessageResponse
+  = MLSMessageResponseError GalleyError
+  | MLSMessageResponseProtocolError Text
+  | MLSMessageResponseProposalFailure JSONResponse
+  | -- | The conversation-owning backend could not reach some of the backends that
+    -- have users in the conversation when processing a commit.
+    MLSMessageResponseUnreachableBackends (Set Domain)
+  | -- | If the list of unreachable users is non-empty, it corresponds to users
+    -- that an application message could not be sent to.
+    MLSMessageResponseUpdates [ConversationUpdate]
+  | MLSMessageResponseNonFederatingBackends NonFederatingBackends
+  deriving stock (Eq, Show, Generic)
+  deriving (ToJSON, FromJSON) via (CustomEncoded MLSMessageResponse)
+
+instance ToSchema MLSMessageResponse
+
+data LeaveSubConversationRequest = LeaveSubConversationRequest
+  { lscrUser :: UserId,
+    lscrClient :: ClientId,
+    lscrConv :: ConvId,
+    lscrSubConv :: SubConvId
+  }
+  deriving stock (Eq, Show, Generic)
+  deriving (Arbitrary) via (GenericUniform LeaveSubConversationRequest)
+  deriving (ToJSON, FromJSON) via (CustomEncoded LeaveSubConversationRequest)
+
+instance ToSchema LeaveSubConversationRequest
+
+data LeaveSubConversationResponse
+  = LeaveSubConversationResponseError GalleyError
+  | LeaveSubConversationResponseProtocolError Text
+  | LeaveSubConversationResponseOk
+  deriving stock (Eq, Show, Generic)
+  deriving (ToJSON, FromJSON) via (CustomEncoded LeaveSubConversationResponse)
+
+instance ToSchema LeaveSubConversationResponse
+
+data ProteusMessageSendRequest = ProteusMessageSendRequest
+  { -- | Conversation is assumed to be owned by the target domain, this allows
+    -- us to protect against relay attacks
+    convId :: ConvId,
+    -- | Sender is assumed to be owned by the origin domain, this allows us to
+    -- protect against spoofing attacks
+    sender :: UserId,
+    rawMessage :: Base64ByteString
+  }
+  deriving stock (Eq, Show, Generic)
+  deriving (Arbitrary) via (GenericUniform ProteusMessageSendRequest)
+  deriving (ToJSON, FromJSON) via (CustomEncoded ProteusMessageSendRequest)
+
+instance ToSchema ProteusMessageSendRequest
+
+newtype MessageSendResponse = MessageSendResponse
+  {response :: PostOtrResponse MessageSendingStatus}
+  deriving stock (Eq, Show, Generic)
+  deriving
+    (ToJSON, FromJSON)
+    via ( Either
+            (CustomEncoded (MessageNotSent MessageSendingStatus))
+            MessageSendingStatus
+        )
+
+instance ToSchema MessageSendResponse
+
+-- | Error outcomes of the leave-conversation RPC.
+data RemoveFromConversationError
+  = RemoveFromConversationErrorRemovalNotAllowed
+  | RemoveFromConversationErrorNotFound
+  | RemoveFromConversationErrorUnchanged
+  deriving stock (Eq, Show, Generic)
+  deriving (ToJSON, FromJSON) via (CustomEncoded RemoveFromConversationError)
+
+instance ToSchema RemoveFromConversationError

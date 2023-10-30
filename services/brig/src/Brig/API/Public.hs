@@ -304,7 +304,6 @@ servantSitemap =
     selfAPI :: ServerT SelfAPI (Handler r)
     selfAPI =
       Named @"get-self" getSelf
-        :<|> Named @"delete-self" (callsFed (exposeAnnotations deleteSelfUser))
         :<|> Named @"put-self" (callsFed (exposeAnnotations updateUser))
         :<|> Named @"change-phone" changePhone
         :<|> Named @"remove-phone" (callsFed (exposeAnnotations removePhone))
@@ -314,11 +313,11 @@ servantSitemap =
         :<|> Named @"change-locale" (callsFed (exposeAnnotations changeLocale))
         :<|> Named @"change-handle" (callsFed (exposeAnnotations changeHandle))
         :<|> Named @"change-supported-protocols" changeSupportedProtocols
+        :<|> Named @"delete-self" (callsFed (exposeAnnotations deleteSelfUser))
 
     accountAPI :: ServerT AccountAPI (Handler r)
     accountAPI =
       Named @"register" (callsFed (exposeAnnotations createUser))
-        :<|> Named @"verify-delete" (callsFed (exposeAnnotations verifyDeleteUser))
         :<|> Named @"get-activate" (callsFed (exposeAnnotations activate))
         :<|> Named @"post-activate" (callsFed (exposeAnnotations activateKey))
         :<|> Named @"post-activate-send" sendActivationCode
@@ -326,6 +325,7 @@ servantSitemap =
         :<|> Named @"post-password-reset-complete" completePasswordReset
         :<|> Named @"post-password-reset-key-deprecated" deprecatedCompletePasswordReset
         :<|> Named @"onboarding" deprecatedOnboarding
+        :<|> Named @"verify-delete" (callsFed (exposeAnnotations verifyDeleteUser))
 
     clientAPI :: ServerT ClientAPI (Handler r)
     clientAPI =

@@ -497,29 +497,6 @@ type ConversationAPI =
                     )
            )
     :<|> Named
-           "leave-subconversation"
-           ( Summary "Leave an MLS subconversation"
-               :> From 'V5
-               :> MakesFederatedCall 'Galley "on-mls-message-sent"
-               :> MakesFederatedCall 'Galley "leave-sub-conversation"
-               :> CanThrow 'ConvNotFound
-               :> CanThrow 'ConvAccessDenied
-               :> CanThrow 'MLSProtocolErrorTag
-               :> CanThrow 'MLSStaleMessage
-               :> CanThrow 'MLSNotEnabled
-               :> ZLocalUser
-               :> ZClient
-               :> "conversations"
-               :> QualifiedCapture "cnv" ConvId
-               :> "subconversations"
-               :> Capture "subconv" SubConvId
-               :> "self"
-               :> MultiVerb1
-                    'DELETE
-                    '[JSON]
-                    (RespondEmpty 200 "OK")
-           )
-    :<|> Named
            "delete-subconversation"
            ( Summary "Delete an MLS subconversation"
                :> From 'V5
@@ -1284,3 +1261,29 @@ type ConversationAPI =
                :> ReqBody '[JSON] ProtocolUpdate
                :> MultiVerb 'PUT '[Servant.JSON] ConvUpdateResponses (UpdateResult Event)
            )
+    :<|> ConversationAPINotification
+
+type ConversationAPINotification =
+  Named
+    "leave-subconversation"
+    ( Summary "Leave an MLS subconversation"
+        :> From 'V5
+        :> MakesFederatedCall 'Galley "on-mls-message-sent"
+        :> MakesFederatedCall 'Galley "leave-sub-conversation"
+        :> CanThrow 'ConvNotFound
+        :> CanThrow 'ConvAccessDenied
+        :> CanThrow 'MLSProtocolErrorTag
+        :> CanThrow 'MLSStaleMessage
+        :> CanThrow 'MLSNotEnabled
+        :> ZLocalUser
+        :> ZClient
+        :> "conversations"
+        :> QualifiedCapture "cnv" ConvId
+        :> "subconversations"
+        :> Capture "subconv" SubConvId
+        :> "self"
+        :> MultiVerb1
+             'DELETE
+             '[JSON]
+             (RespondEmpty 200 "OK")
+    )
