@@ -64,6 +64,7 @@ import System.Logger.Extended (mkLogger)
 import Util.Options
 import Wire.API.Routes.API
 import Wire.API.Routes.Public.Galley
+import Wire.API.Routes.Public.Galley (GalleyAPINotifications)
 import Wire.API.Routes.Version.Wai
 
 run :: Opts -> IO ()
@@ -116,6 +117,7 @@ mkApp opts =
                 :. Servant.EmptyContext
             )
             ( hoistAPIHandler (toServantHandler e) API.servantSitemap
+                :<|> hoistAPIHandler (toServantHandler e) API.servantSitemapNotifications
                 :<|> hoistAPIHandler (toServantHandler e) internalAPI
                 :<|> hoistServerWithDomain @FederationAPI (toServantHandler e) federationSitemap
                 :<|> Servant.Tagged (runGalley e)
@@ -152,6 +154,7 @@ bodyParserErrorFormatter' _ _ errMsg =
 
 type CombinedAPI =
   GalleyAPI
+    :<|> GalleyAPINotifications
     :<|> InternalAPI
     :<|> FederationAPI
     :<|> Servant.Raw

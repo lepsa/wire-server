@@ -39,7 +39,6 @@ type GalleyAPI =
   ConversationAPI
     :<|> TeamConversationAPI
     :<|> MessagingAPI
-    :<|> BotAPINotification
     :<|> TeamAPI
     :<|> FeatureAPI
     :<|> MLSAPI
@@ -48,7 +47,15 @@ type GalleyAPI =
     :<|> TeamMemberAPI
     :<|> TeamNotificationAPI
 
+type GalleyAPINotifications =
+  BotAPINotification
+
 data GalleyAPITag
+
+data GalleyAPINotificationsTag
 
 instance ServiceAPI GalleyAPITag v where
   type ServiceAPIRoutes GalleyAPITag = GalleyAPI
+
+instance ServiceAPI GalleyAPINotificationsTag v where
+  type ServiceAPIRoutes GalleyAPINotificationsTag = GalleyAPINotifications

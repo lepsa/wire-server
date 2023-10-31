@@ -17,6 +17,7 @@
 
 module Galley.API.Public.Servant (mkNamedAPI, servantSitemap) where
 
+import Brig.Provider.API (botAPI)
 import Galley.API.Public.Bot
 import Galley.API.Public.Conversation
 import Galley.API.Public.CustomBackend
@@ -37,7 +38,6 @@ servantSitemap =
   conversationAPI
     <@> teamConversationAPI
     <@> messagingAPI
-    <@> botAPI
     <@> teamAPI
     <@> featureAPI
     <@> mlsAPI
@@ -45,3 +45,7 @@ servantSitemap =
     <@> legalHoldAPI
     <@> teamMemberAPI
     <@> teamNotificationAPI
+
+servantSitemapNotifications :: API GalleyAPINotifications GalleyEffects
+servantSitemapNotifications =
+  botAPI

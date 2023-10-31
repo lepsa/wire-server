@@ -71,6 +71,18 @@ type HasFedEndpoint comp api name = (HasUnsafeFedEndpoint comp api name)
 -- you to forget about some federated calls.
 type HasUnsafeFedEndpoint comp api name = 'Just api ~ LookupEndpoint (FedApi comp) name
 
+type family FedNotificationsApi (comp :: Component) = (api :: Type) | api -> comp
+
+type instance FedNotificationsApi 'Galley = GalleyNotificationsAPI
+
+type instance FedNotificationsApi 'Brig = BrigNotificationsAPI
+
+type instance FedNotificationsApi 'Cargohold = EmptyAPI
+
+type HasFedNotificationsEndpoint comp api name = (HasUnsafeFedNotificationsEndpoint comp api name)
+
+type HasUnsafeFedNotificationsEndpoint comp api name = 'Just api ~ LookupEndpoint (FedNotificationsApi comp) name
+
 -- | Constrains which endpoints can be used with FedQueueClient.
 --
 -- Since the servant client implementation underlying FedQueueClient is

@@ -103,7 +103,7 @@ instance HasNotificationEndpoint 'OnUserDeletedConversationsTag where
         (Payload 'OnUserDeletedConversationsTag)
 
 -- | All the notification endpoints return an 'EmptyResponse'.
-type GalleyNotificationAPI =
+type GalleyNotificationsAPI =
   NotificationAPI 'OnClientRemovedTag 'Galley
     :<|> NotificationAPI 'OnMessageSentTag 'Galley
     :<|> NotificationAPI 'OnMLSMessageSentTag 'Galley

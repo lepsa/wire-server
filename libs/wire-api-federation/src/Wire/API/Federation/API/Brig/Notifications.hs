@@ -58,7 +58,7 @@ instance HasNotificationEndpoint 'OnUserDeletedConnectionsTag where
 instance ToSchema UserDeletedConnectionsNotification
 
 -- | All the notification endpoints return an 'EmptyResponse'.
-type BrigNotificationAPI =
+type BrigNotificationsAPI =
   -- FUTUREWORK: Use NotificationAPI 'OnUserDeletedConnectionsTag 'Brig instead
   NotificationFedEndpoint 'OnUserDeletedConnectionsTag
     -- These routes are similar to those above, but not all of their requests go via a queue
