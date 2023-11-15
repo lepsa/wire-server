@@ -32,6 +32,10 @@ import System.IO.Error
 import qualified System.TimeManager
 import System.Timeout
 import Prelude
+import Network.HTTP2.Client (Config(..))
+import qualified Data.ByteString as B
+import qualified Network.Socket.ByteString as N
+import Network.Socket (Socket)
 
 data HTTP2Conn = HTTP2Conn
   { backgroundThread :: Async (),
@@ -419,8 +423,85 @@ instance Exception ConnectionAlreadyClosed
 bufsize :: Int
 bufsize = 4096
 
+dataReadN :: Socket -> IORef (Maybe B.ByteString) -> Int -> IO B.ByteString
+dataReadN _ _ 0 = pure B.empty
+dataReadN s ref n = do
+    -- Get the bytestring and modification flag.
+    -- If we get the flag as True, then we know we can work on the
+    -- bytestring. Otherwise, loop.
+    -- That we are always writing False to the IORef here won't
+    -- effect the outcome in multithreading. This is due to the use
+    -- of atomic writes for all modifications in this function.
+    -- If it has been written as True, then we will see that upon
+    -- modification, and it won't be swallowed in the multithreading.
+--    (flag, mbs) <- atomicModifyIORef' ref $ \t@(_, mbs) -> ((False, mbs), t)
+--    if flag
+--    then case mbs of
+--      Nothing -> do
+--          bs <- N.recv s n
+--          if B.null bs
+--          then B.empty <$ atomicWriteIORef ref (True, Nothing)
+--          else
+--            if B.length bs == n
+--            then bs <$ atomicWriteIORef ref (True, Nothing)
+--            else loop bs
+--      Just bs
+--          | B.length bs == n -> bs <$ atomicWriteIORef ref (True, Nothing)
+--          | B.length bs > n -> do
+--              let (bs0, bs1) = B.splitAt n bs
+--              bs0 <$ atomicWriteIORef ref (True, Just bs1)
+--          | otherwise -> loop bs
+--    else dataReadN s ref n
+--  where
+--    loop bs = do
+--      let n' = n - B.length bs
+--      bs1 <- N.recv s n'
+--      if B.null bs1
+--      then B.empty <$ atomicWriteIORef ref (True, Nothing)
+--      else do
+--        let bs2 = bs `B.append` bs1
+--        if B.length bs2 == n
+--        then bs2 <$ atomicWriteIORef ref (True, Nothing)
+--        else loop bs2
+    mbs <- readIORef ref
+    writeIORef ref Nothing
+    case mbs of
+      Nothing -> do
+          bs <- N.recv s n
+          if B.null bs then
+              error "Empty read!"
+              -- pure B.empty
+          else if B.length bs == n then
+              pure bs
+            else
+              loop bs
+      Just bs
+        | B.length bs == n -> pure bs
+        | B.length bs > n  -> do
+              let (bs0, bs1) = B.splitAt n bs
+              writeIORef ref (Just bs1)
+              pure bs0
+        | otherwise        -> loop bs
+  where
+    loop bs = do
+        let n' = n - B.length bs
+        bs1 <- N.recv s n'
+        if B.null bs1 then
+            error "Empty read! loop"
+            -- pure B.empty
+          else do
+            let bs2 = bs `B.append` bs1
+            if B.length bs2 == n then
+                pure bs2
+              else
+                loop bs2
+
 allocHTTP2Config :: Transport -> IO HTTP2.Config
-allocHTTP2Config (InsecureTransport sock) = HTTP2.allocSimpleConfig sock bufsize
+allocHTTP2Config (InsecureTransport sock) = do
+  conf <- HTTP2.allocSimpleConfig sock bufsize
+  ref <- newIORef Nothing
+  pure $ conf { confReadN = dataReadN sock ref }
+-- allocHTTP2Config (InsecureTransport sock) = HTTP2.allocSimpleConfig sock bufsize
 allocHTTP2Config (SecureTransport ssl) = do
   buf <- mallocBytes bufsize
   timmgr <- System.TimeManager.initialize $ 30 * 1000000

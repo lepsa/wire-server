@@ -395,8 +395,9 @@ let
   # overrides
   inherit (pkgs.haskell.packages.ghc92.override {
     overrides = hfinal: hprev: {
-      ormolu = hfinal.ormolu_0_5_0_1;
-      ghc-lib-parser = hprev.ghc-lib-parser_9_2_8_20230729;
+      ormolu = hfinal.ormolu_0_5_2_0;
+      ghc-lib-parser = hprev.ghc-lib-parser;
+      Cabal-syntax = hprev.Cabal-syntax_3_8_1_0;
     };
   }) ormolu;
 
@@ -453,8 +454,8 @@ let
 
   inherit (pkgs.haskellPackages.override {
     overrides = _hfinal: hprev: {
-      base-compat = hprev.base-compat_0_13_0;
-      base-compat-batteries = hprev.base-compat-batteries_0_13_0;
+      base-compat = hprev.base-compat_0_13_1;
+      base-compat-batteries = hprev.base-compat-batteries_0_13_1;
       cabal-plan = hlib.markUnbroken (hlib.doJailbreak hprev.cabal-plan);
     };
   }) cabal-plan;

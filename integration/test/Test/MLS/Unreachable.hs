@@ -24,7 +24,22 @@ import MLS.Util
 import Notifications
 import SetupHelpers
 import Testlib.Prelude
-import Testlib.ResourcePool
+import Testlib.ResourcePool ( acquireResources )
+import UnliftIO (replicateConcurrently_)
+
+testAddUsersBulkConcurrent :: HasCallStack => App ()
+testAddUsersBulkConcurrent = do
+  -- startDynamicBackends [mempty] $ \[thirdDomain] ->
+  replicateConcurrently_ concurrentN $
+    replicateM sequentialN $ do
+      ownDomain <- make OwnDomain & asString
+      otherDomain <- make OtherDomain & asString
+      -- [_alice, _bob, _charlie] <- createAndConnectUsers [ownDomain, otherDomain, thirdDomain]
+      [_alice, _bob] <- createAndConnectUsers [ownDomain, otherDomain]
+      pure ()
+  where    
+    concurrentN = 10
+    sequentialN = 50
 
 testAddUsersSomeReachable :: HasCallStack => App ()
 testAddUsersSomeReachable = do

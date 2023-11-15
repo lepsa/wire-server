@@ -222,6 +222,14 @@ let
         sha256 = "sha256-4xGW3KHQKbTL+6+Q/gzfaMBP+J0npUe7tP5ZCQCB5+s=";
       };
     };
+    # Not released yet. Contains changes for handling concurrent stream limits
+    http2 = {
+      src = fetchgit {
+        url = "https://github.com/kazu-yamamoto/http2";
+        rev = "4813fd83daee237eab7194897e5a6116a3036978";
+        sha256 = "sha256-en6ck5Ywyyszy+fKqBef4KwVCwXK9JxzE/z2kjeAyQY=";
+      };
+    };
   };
   hackagePins = {
     # Major re-write upstream, we should get rid of this dependency rather than
@@ -237,10 +245,6 @@ let
     HsOpenSSL = {
       version = "0.11.7.5";
       sha256 = "sha256-CfH1YJSGuF4O1aUfdJwUZKRrVzv5nSPhwoI7mf9ewEg=";
-    };
-    http2 = {
-      version = "4.1.0";
-      sha256 = "sha256-D6RWYBguoj+W1LwNeX04h4csXV69rrs0tZpeNr7ZBqE=";
     };
     optparse-generic = {
       version = "1.5.1";
